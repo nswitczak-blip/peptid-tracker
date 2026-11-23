@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B8326A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Peptid-Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rose:#B8326A; --rose-strong:#9C2457; --rose-soft:#FBE9F0; --rose-line:#F2C6D7;
+  --bg:#F6F4F6; --surface:#FFFFFF; --surface-2:#FAF8FA; --line:#E7E3E8;
+  --text:#2F2A33; --muted:#7A7380; --faint:#A9A2AE;
+  --ok:#2E8B57; --ok-soft:#E3F4EA; --warn:#B7791F; --warn-soft:#FCF1DC;
+  --danger:#C0392B; --danger-soft:#FBE4E1;
+  --st-unopened:#8A8390; --st-mixed:#7B5CC4; --st-inuse:#2E8B57; --st-empty:#B7791F; --st-disposed:#B04A4A;
+  --shadow:0 1px 2px rgba(60,30,50,.06),0 4px 14px rgba(60,30,50,.05);
+  --radius-l:22px; --radius-m:16px; --radius-s:10px;
+  --nav-h:68px;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --rose:#F07FAA; --rose-strong:#F79BBE; --rose-soft:#3A2330; --rose-line:#5A3447;
+    --bg:#17141A; --surface:#211D25; --surface-2:#28232D; --line:#38323E;
+    --text:#F2EEF4; --muted:#B3ABB9; --faint:#7D7584;
+    --ok:#5CC98A; --ok-soft:#1F3328; --warn:#E5B25A; --warn-soft:#3A2F1C;
+    --danger:#F0857A; --danger-soft:#3D2222;
+    --st-unopened:#A39BAA; --st-mixed:#A68CF0; --st-inuse:#5CC98A; --st-empty:#E5B25A; --st-disposed:#E08585;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --rose:#F07FAA; --rose-strong:#F79BBE; --rose-soft:#3A2330; --rose-line:#5A3447;
+  --bg:#17141A; --surface:#211D25; --surface-2:#28232D; --line:#38323E;
+  --text:#F2EEF4; --muted:#B3ABB9; --faint:#7D7584;
+  --ok:#5CC98A; --ok-soft:#1F3328; --warn:#E5B25A; --warn-soft:#3A2F1C;
+  --danger:#F0857A; --danger-soft:#3D2222;
+  --st-unopened:#A39BAA; --st-mixed:#A68CF0; --st-inuse:#5CC98A; --st-empty:#E5B25A; --st-disposed:#E08585;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.45;font-weight:400;-webkit-tap-highlight-color:transparent;padding-bottom:calc(var(--nav-h) + 24px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+img{max-width:100%}
+:focus-visible{outline:3px solid var(--rose);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.num{font-variant-numeric:tabular-nums}
+
+/* Kopf */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:14px 18px 10px;display:flex;align-items:center;gap:12px}
+.topbar h1{font-size:1.55rem;font-weight:600;margin:0;flex:1;letter-spacing:-.01em}
+.topbar .sub{display:block;font-size:.85rem;font-weight:400;color:var(--muted);letter-spacing:0}
+main{max-width:720px;margin:0 auto;padding:0 16px}
+
+/* Navigation */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:.74rem;color:var(--muted);border-radius:14px;min-height:54px;cursor:pointer}
+.nav button svg{width:24px;height:24px}
+.nav button[aria-current="page"]{color:var(--rose)}
+.nav button[aria-current="page"] .pill{background:var(--rose-soft)}
+.nav .pill{display:flex;padding:3px 16px;border-radius:999px}
+
+/* Bausteine */
+.section{margin:22px 0 10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.section h2{font-size:1.1rem;font-weight:600;margin:0}
+.section .link{background:none;border:0;color:var(--rose);font-size:.92rem;padding:6px 0;cursor:pointer}
+.card{background:var(--surface);border-radius:var(--radius-m);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.row{display:flex;align-items:center;gap:10px}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:999px;border:0;background:var(--rose);color:#fff;font-weight:500;font-size:1rem;cursor:pointer}
+:root[data-theme="dark"] .btn, .btn{color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn:not(.ghost):not(.soft):not(.danger){color:#2A1520}}
+:root[data-theme="dark"] .btn:not(.ghost):not(.soft):not(.danger){color:#2A1520}
+.btn.soft{background:var(--rose-soft);color:var(--rose-strong)}
+.btn.ghost{background:transparent;color:var(--text);border:1.5px solid var(--line)}
+.btn.danger{background:var(--danger-soft);color:var(--danger)}
+.btn.block{width:100%}
+.btn.sm{min-height:42px;padding:0 16px;font-size:.92rem}
+.btn:disabled{opacity:.5}
+.iconbtn{width:46px;height:46px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);flex:none}
+.iconbtn svg{width:22px;height:22px}
+.fab{position:fixed;right:18px;bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom,0px));z-index:24;box-shadow:0 6px 20px rgba(184,50,106,.35)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 15px;font-size:.92rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;min-height:42px}
+.chip[aria-pressed="true"]{background:var(--rose);border-color:var(--rose);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#2A1520}}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#2A1520}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;display:inline-block}
+.empty{text-align:center;padding:30px 18px;color:var(--muted)}
+.empty b{display:block;color:var(--text);font-weight:500;font-size:1.05rem;margin-bottom:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:500;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.st-unopened{color:var(--st-unopened);background:color-mix(in srgb,var(--st-unopened) 14%,transparent)}
+.st-mixed{color:var(--st-mixed);background:color-mix(in srgb,var(--st-mixed) 14%,transparent)}
+.st-inuse{color:var(--st-inuse);background:color-mix(in srgb,var(--st-inuse) 14%,transparent)}
+.st-empty{color:var(--st-empty);background:color-mix(in srgb,var(--st-empty) 16%,transparent)}
+.st-disposed{color:var(--st-disposed);background:color-mix(in srgb,var(--st-disposed) 14%,transparent)}
+.notice{border-radius:var(--radius-s);padding:12px 14px;font-size:.9rem;margin:10px 0}
+.notice.info{background:var(--rose-soft);color:var(--text)}
+.notice.warn{background:var(--warn-soft);color:var(--text);border-left:4px solid var(--warn)}
+.notice.danger{background:var(--danger-soft);color:var(--text);border-left:4px solid var(--danger)}
+.notice.ok{background:var(--ok-soft);color:var(--text)}
+
+/* Vial-Karte: farbige Kappe oben wie beim echten Vial */
+.vial{position:relative;background:var(--surface);border-radius:var(--radius-m);box-shadow:var(--shadow);padding:0;margin-bottom:12px;overflow:hidden;cursor:pointer;border:0;width:100%;text-align:left;display:block}
+.vial .cap{height:9px;background:var(--vc,var(--rose))}
+.vial .body{padding:13px 16px 15px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:start}
+.vial .title{font-weight:600;font-size:1.08rem;line-height:1.25}
+.vial .id{font-size:.78rem;color:var(--faint);letter-spacing:.02em}
+.vial .conc{grid-row:span 2;text-align:right}
+.vial .conc .v{font-size:1.55rem;font-weight:600;line-height:1}
+.vial .conc .u{font-size:.8rem;color:var(--muted)}
+.vial .meta{grid-column:1/-1;display:flex;gap:6px 14px;flex-wrap:wrap;font-size:.86rem;color:var(--muted);margin-top:6px}
+.vial .meta b{color:var(--text);font-weight:500}
+.vial .thumb{width:40px;height:40px;border-radius:10px;object-fit:cover;margin-right:4px}
+.hscroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll .vial{flex:0 0 78%;max-width:300px;scroll-snap-align:start;margin-bottom:0}
+
+/* Peptidgruppe */
+.pgroup{margin-bottom:22px}
+.pgroup .phead{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.pgroup .phead h3{margin:0;font-size:1.2rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.pgroup .swatch{width:16px;height:30px;border-radius:6px;flex:none}
+
+/* Listen */
+.list{background:var(--surface);border-radius:var(--radius-m);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px}
+.li{display:flex;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer}
+.li:last-child{border-bottom:0}
+.li .time{font-weight:600;min-width:52px;font-variant-numeric:tabular-nums}
+.li .t{font-weight:500}
+.li .s{font-size:.85rem;color:var(--muted)}
+.li .bar{width:5px;align-self:stretch;border-radius:4px;flex:none}
+
+/* Formulare */
+.field{margin-bottom:14px}
+.field label,.flabel{display:block;font-size:.88rem;color:var(--muted);margin-bottom:6px;font-weight:500}
+.input,select.input,textarea.input{width:100%;min-height:52px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);padding:12px 14px;font-size:1.02rem;appearance:none;-webkit-appearance:none}
+select.input{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:36px}
+textarea.input{min-height:90px;resize:vertical}
+.input:focus{border-color:var(--rose);outline:none}
+.unit{position:relative}
+.unit .input{padding-right:52px}
+.unit span{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.95rem;pointer-events:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer}
+.check input{width:24px;height:24px;accent-color:var(--rose)}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.colors button{width:40px;height:40px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.colors button[aria-pressed="true"]{border-color:var(--text)}
+.weekdays{display:flex;gap:6px}
+.weekdays button{flex:1;min-height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:.9rem}
+.weekdays button[aria-pressed="true"]{background:var(--rose);border-color:var(--rose);color:#fff}
+.calc{background:var(--rose-soft);border-radius:var(--radius-m);padding:16px;margin:4px 0 14px;text-align:center}
+.calc .big{font-size:2.3rem;font-weight:600;line-height:1.1;color:var(--rose-strong)}
+.calc .big small{font-size:1rem;font-weight:500}
+.seg{display:flex;background:var(--surface);border-radius:999px;padding:4px;box-shadow:var(--shadow);margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;min-height:42px;border-radius:999px;cursor:pointer;font-size:.95rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--rose);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"],:root:not([data-theme="light"]) .weekdays button[aria-pressed="true"]{color:#2A1520}}
+:root[data-theme="dark"] .seg button[aria-pressed="true"],:root[data-theme="dark"] .weekdays button[aria-pressed="true"]{color:#2A1520}
+
+/* Mischdaten-Box */
+.mixbox{border:2px solid var(--rose-line);border-radius:var(--radius-m);padding:14px;margin:6px 0 14px;background:var(--surface-2)}
+.mixbox .k{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.92rem}
+.mixbox .k span:nth-child(odd){color:var(--muted)}
+.mixbox .k span:nth-child(even){font-weight:500;text-align:right}
+
+/* Kalender */
+.calnav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.calnav h2{flex:1;text-align:center;margin:0;font-size:1.12rem;font-weight:600}
+.month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--surface);border-radius:var(--radius-m);padding:10px;box-shadow:var(--shadow)}
+.month .wd{text-align:center;font-size:.76rem;color:var(--muted);padding:4px 0}
+.month .d{aspect-ratio:1/1.12;border:0;background:none;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:6px 0 4px;cursor:pointer;font-size:.95rem;gap:4px;min-width:0}
+.month .d.out{color:var(--faint)}
+.month .d.today .n{background:var(--rose);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .month .d.today .n{color:#2A1520}}
+:root[data-theme="dark"] .month .d.today .n{color:#2A1520}
+.month .d.sel{background:var(--rose-soft)}
+.month .dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:34px}
+.month .dots i{width:7px;height:7px;border-radius:50%;display:block}
+.occ-done{opacity:.62}
+.occ-done .t{text-decoration:line-through}
+.stat{font-size:.78rem;padding:3px 9px;border-radius:999px;font-weight:500;white-space:nowrap}
+.stat.done{background:var(--ok-soft);color:var(--ok)}
+.stat.missed{background:var(--danger-soft);color:var(--danger)}
+.stat.open{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+
+/* Sheet / Dialoge */
+.backdrop{position:fixed;inset:0;background:rgba(30,15,25,.42);z-index:40;display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease}
+.sheet{background:var(--bg);width:100%;max-width:720px;max-height:92vh;max-height:92dvh;border-radius:26px 26px 0 0;overflow:auto;padding:8px 18px calc(22px + env(safe-area-inset-bottom,0px));animation:up .22s ease}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.sheet .shead{display:flex;align-items:center;gap:10px;margin-bottom:14px;position:sticky;top:-8px;background:var(--bg);padding:8px 0;z-index:2}
+.sheet .shead h2{flex:1;margin:0;font-size:1.25rem;font-weight:600}
+.sheet .actions{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom,0px));background:var(--bg);padding:10px 0 4px}
+.sheet .actions .btn{flex:1}
+.dialog{background:var(--surface);border-radius:24px;padding:22px;width:calc(100% - 32px);max-width:440px;margin:auto;animation:up .2s ease}
+.backdrop.center{align-items:center}
+.dialog h2{margin:0 0 10px;font-size:1.2rem}
+.dialog ul{padding-left:20px;margin:8px 0}
+.dialog .actions{display:flex;gap:10px;margin-top:18px}
+.dialog .actions .btn{flex:1}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 26px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);padding:12px 20px;border-radius:999px;z-index:60;font-size:.94rem;max-width:calc(100% - 32px);text-align:center;animation:up .2s ease}
+
+/* Verlauf */
+.hist{border-left:3px solid var(--rose-line);padding:2px 0 2px 14px;margin:0 0 14px}
+.hist .when{font-size:.82rem;color:var(--muted)}
+.hist .chg{font-size:.92rem}
+.hist del{color:var(--faint)}
+.photo{width:100%;max-height:240px;object-fit:cover;border-radius:var(--radius-m);margin-bottom:12px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:.96rem}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;text-align:right;font-weight:500;overflow-wrap:anywhere}
+
+/* PIN */
+.lock{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:18px}
+.lock h2{margin:0;font-weight:600}
+.pinDots{display:flex;gap:14px}
+.pinDots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--rose);display:block}
+.pinDots i.f{background:var(--rose)}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px}
+.pad button{height:76px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);font-size:1.6rem;cursor:pointer}
+.hero{padding:8px 2px 4px}
+.hero .greet{font-size:.95rem;color:var(--muted)}
+.next{background:var(--rose);color:#fff;border-radius:var(--radius-l);padding:18px 18px 16px;margin:6px 0 4px;display:flex;align-items:center;gap:14px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .next{color:#2A1520}}
+:root[data-theme="dark"] .next{color:#2A1520}
+.next .big{font-size:2rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.next .lbl{font-size:.88rem;opacity:.85}
+.next .nm{font-size:1.1rem;font-weight:500}
+.next .btn{background:rgba(255,255,255,.22);color:inherit;min-height:46px}
+.tabs-scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<header class="topbar"><h1 id="title">Start</h1><span id="topAction"></span></header>
+<main id="view" aria-live="polite"></main>
+<nav class="nav" aria-label="Hauptnavigation">
+  <button data-go="start"><span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span>Start</button>
+  <button data-go="vials"><span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 6v2l-1 2v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V10l-1-2V6"/><path d="M8 14h8"/></svg></span>Vials</button>
+  <button data-go="kalender"><span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Kalender</button>
+  <button data-go="verlauf"><span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span>Verlauf</button>
+  <button data-go="mehr"><span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span>Mehr</button>
+</nav>
+<div id="layer"></div>
+
+<script>
+"use strict";
+/* ================= Grunddaten ================= */
+const STATUS = {
+  unopened:{label:"Ungeöffnet", cls:"st-unopened"},
+  mixed:{label:"Angemischt", cls:"st-mixed"},
+  inuse:{label:"In Verwendung", cls:"st-inuse"},
+  empty:{label:"Aufgebraucht", cls:"st-empty"},
+  disposed:{label:"Entsorgt", cls:"st-disposed"}
+};
+const COLORS = ["#E05297","#7B5CC4","#2E9C8F","#E8873A","#3F7FD6","#C94F4F","#5E9E3A","#B5833B","#8E5BA8","#3BA7C9","#D46A9E","#6C7A89"];
+const FIELD_LABELS = {peptideId:"Peptid",label:"Bezeichnung",mg:"Peptidmenge (mg)",bacMl:"BAC-Wasser (ml)",mixedAt:"Angemischt am",lot:"Charge",purchaseDate:"Kaufdatum",expiry:"Verfallsdatum",openedAt:"Anbruchdatum",status:"Status",notes:"Notizen",color:"Farbe",photo:"Foto"};
+const MIX_FIELDS = ["mg","bacMl","mixedAt"];
+const WD_SHORT = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const SITES = ["Bauch links","Bauch rechts","Oberschenkel links","Oberschenkel rechts","Oberarm links","Oberarm rechts","Gesäß links","Gesäß rechts"];
+
+function emptyState(){
+  return {app:"peptid-tracker", version:1, created:new Date().toISOString(),
+    settings:{theme:"auto", pinHash:null, reminders:true, neutralTitles:false},
+    peptides:[], vials:[], plans:[], occ:{}, logs:[], notified:{}};
+}
+let S = emptyState();
+
+/* ================= Speicher: IndexedDB mit Rückfall ================= */
+const DB_NAME="peptid-tracker", STORE="data";
+let idb=null, storageMode="memory";
+function openIDB(){
+  return new Promise((res,rej)=>{
+    try{
+      const r=indexedDB.open(DB_NAME,1);
+      r.onupgradeneeded=()=>r.result.createObjectStore(STORE);
+      r.onsuccess=()=>res(r.result);
+      r.onerror=()=>rej(r.error);
+    }catch(e){rej(e)}
+  });
+}
+function idbGet(key){return new Promise((res,rej)=>{const t=idb.transaction(STORE,"readonly").objectStore(STORE).get(key);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})}
+function idbPut(key,val){return new Promise((res,rej)=>{const tx=idb.transaction(STORE,"readwrite");tx.objectStore(STORE).put(val,key);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function loadState(){
+  try{ idb=await openIDB(); storageMode="indexeddb"; const v=await idbGet("state"); if(v) S=migrate(v); }
+  catch(e){
+    try{ const raw=localStorage.getItem("peptid-tracker-state"); storageMode="localstorage"; if(raw) S=migrate(JSON.parse(raw)); }
+    catch(e2){ storageMode="memory"; }
+  }
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+}
+function migrate(v){
+  const base=emptyState();
+  const out=Object.assign(base,v);
+  out.settings=Object.assign(emptyState().settings,v.settings||{});
+  ["peptides","vials","plans","logs"].forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
+  if(!out.occ||typeof out.occ!=="object") out.occ={};
+  if(!out.notified||typeof out.notified!=="object") out.notified={};
+  out.vials.forEach(x=>{ if(!Array.isArray(x.history)) x.history=[]; });
+  return out;
+}
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    const data=JSON.parse(JSON.stringify(S));
+    try{
+      if(storageMode==="indexeddb") await idbPut("state",data);
+      else if(storageMode==="localstorage") localStorage.setItem("peptid-tracker-state",JSON.stringify(data));
+    }catch(e){ toast("Speichern fehlgeschlagen. Bitte Daten exportieren."); }
+  },150);
+}
+
+/* ================= Hilfsfunktionen ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function pad(n){return String(n).padStart(2,"0")}
+function uid(prefix){
+  const all=new Set([...S.peptides,...S.vials,...S.plans,...S.logs].map(x=>x.id));
+  let id;
+  do{
+    const t=Date.now().toString(36).toUpperCase().slice(-4);
+    const r=Math.random().toString(36).toUpperCase().slice(2,5).padEnd(3,"X");
+    id=`${prefix}-${t}${r}`;
+  }while(all.has(id));
+  return id;
+}
+function num(v){ if(v===""||v==null) return null; const n=parseFloat(String(v).replace(",",".")); return isFinite(n)?n:null; }
+function fmt(n,d=3){ if(n==null||!isFinite(n)) return "–"; return n.toLocaleString("de-DE",{maximumFractionDigits:d}); }
+function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function localDT(d){return `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`}
+function parseYMD(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function parseDT(s){ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }
+function todayStr(){return ymd(new Date())}
+function fDate(s){ if(!s) return "–"; const d=s.length<=10?parseYMD(s):parseDT(s); if(!d) return "–"; return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+function fDT(s){ const d=parseDT(s); if(!d) return "–"; return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"})+", "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr"; }
+function fLong(d){return d.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})}
+function wdIdx(d){return (d.getDay()+6)%7}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function conc(v){ return (v && v.mg>0 && v.bacMl>0) ? v.mg/v.bacMl : null; }
+function pep(id){return S.peptides.find(p=>p.id===id)}
+function vial(id){return S.vials.find(v=>v.id===id)}
+function pepColor(id){return (pep(id)||{}).color||"#999"}
+function vialName(v){ if(!v) return "–"; return v.label||v.id; }
+function isExpired(v){ return v && v.expiry && v.expiry < todayStr(); }
+
+function toast(msg){
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2600);
+}
+function dialog({title,html,ok="OK",cancel="Abbrechen",danger=false}){
+  return new Promise(res=>{
+    const b=document.createElement("div"); b.className="backdrop center";
+    b.innerHTML=`<div class="dialog" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><div>${html||""}</div><div class="actions">${cancel?`<button class="btn ghost" data-r="0">${esc(cancel)}</button>`:""}<button class="btn ${danger?"danger":""}" data-r="1">${esc(ok)}</button></div></div>`;
+    b.addEventListener("click",e=>{const r=e.target.closest("[data-r]"); if(r){b.remove();res(r.dataset.r==="1")} else if(e.target===b && cancel){b.remove();res(false)}});
+    $("#layer").appendChild(b); $("[data-r='1']",b).focus();
+  });
+}
+let sheetStack=[];
+function openSheet(title,html,onMount){
+  const b=document.createElement("div"); b.className="backdrop";
+  b.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grab"></div><div class="shead"><h2>${esc(title)}</h2><button class="iconbtn" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="sbody">${html}</div></div>`;
+  b.addEventListener("click",e=>{ if(e.target===b || e.target.closest("[data-close]")) closeSheet(b); });
+  $("#layer").appendChild(b); sheetStack.push(b);
+  if(onMount) onMount($(".sheet",b), ()=>closeSheet(b));
+  return b;
+}
+function closeSheet(b){ b=b||sheetStack[sheetStack.length-1]; if(!b) return; b.remove(); sheetStack=sheetStack.filter(x=>x!==b); }
+function closeAllSheets(){ sheetStack.forEach(b=>b.remove()); sheetStack=[]; }
+function badge(st){ const s=STATUS[st]||STATUS.unopened; return `<span class="badge ${s.cls}">${s.label}</span>`; }
+
+/* ================= Datei speichern / Downloads ================= */
+let dlCap=null;
+if(window.claude && typeof window.claude.use==="function"){ window.claude.use("downloads").then(x=>{dlCap=x}).catch(()=>{}); }
+async function saveFile(filename,data,mime){
+  if(dlCap){
+    try{ await dlCap.save({filename,data}); return true; }
+    catch(e){ if(e && e.code==="declined") return false; }
+  }
+  if(window.claude){ showCopyFallback(filename,data); return true; }
+  try{
+    const blob=new Blob([data],{type:mime||"application/octet-stream"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename;
+    document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+    return true;
+  }catch(e){ showCopyFallback(filename,data); return true; }
+}
+function showCopyFallback(filename,data){
+  openSheet("Inhalt kopieren",`<p class="muted small">Herunterladen ist hier nicht möglich. Markiere den Text, kopiere ihn und speichere ihn als <b>${esc(filename)}</b>.</p><textarea class="input" style="min-height:260px;font-size:.8rem" readonly>${esc(data)}</textarea><div class="actions"><button class="btn" id="cpy">Text kopieren</button></div>`,(s)=>{
+    $("#cpy",s).onclick=async()=>{ const ta=$("textarea",s); ta.select(); try{await navigator.clipboard.writeText(ta.value);toast("Kopiert")}catch(e){document.execCommand&&document.execCommand("copy");toast("Text markiert – jetzt kopieren")} };
+  });
+}
+</script>
+<script>
+"use strict";
+/* ================= Termine berechnen ================= */
+function dayDiff(a,b){return Math.round((parseYMD(b)-parseYMD(a))/86400000)}
+function planMatches(p,ds){
+  if(p.active===false) return false;
+  if(ds<p.startDate) return false;
+  if(p.endDate && ds>p.endDate) return false;
+  switch(p.repeat){
+    case "once": return ds===p.startDate;
+    case "daily": return true;
+    case "weekly": return (p.days||[]).includes(wdIdx(parseYMD(ds)));
+    case "interval": { const n=Math.max(1,p.every||1); return dayDiff(p.startDate,ds)%n===0; }
+  }
+  return false;
+}
+function occBetween(fromStr,toStr){
+  const out=[]; let d=parseYMD(fromStr); const end=parseYMD(toStr);
+  while(d<=end){
+    const ds=ymd(d);
+    for(const p of S.plans){
+      if(planMatches(p,ds)){
+        const key=p.id+"|"+ds; const o=S.occ[key]||{};
+        out.push({key,plan:p,date:ds,time:p.time||"08:00",status:o.status||"open",logId:o.logId,note:o.note});
+      }
+    }
+    d=addDays(d,1);
+  }
+  return out.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+}
+function repeatText(p){
+  switch(p.repeat){
+    case "once": return "Einmalig am "+fDate(p.startDate);
+    case "daily": return "Täglich";
+    case "weekly": return "Wöchentlich: "+(p.days||[]).sort().map(i=>WD_SHORT[i]).join(", ");
+    case "interval": return `Alle ${p.every} Tage`;
+  }
+  return "";
+}
+
+/* ================= Router ================= */
+const VIEWS={start:{t:"Start",r:el=>renderStart(el)},vials:{t:"Peptide & Vials",r:el=>renderVials(el)},kalender:{t:"Kalender",r:el=>renderCalendar(el)},verlauf:{t:"Verlauf",r:el=>renderHistory(el)},mehr:{t:"Mehr",r:el=>renderMore(el)}};
+let current="start";
+function go(name){
+  if(!VIEWS[name]) name="start";
+  current=name;
+  if(location.hash!=="#"+name){ try{history.replaceState(null,"","#"+name)}catch(e){} }
+  $$(".nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.go===name?"page":"false"));
+  $("#title").innerHTML=esc(VIEWS[name].t);
+  $("#topAction").innerHTML="";
+  document.querySelectorAll(".fab").forEach(f=>f.remove());
+  VIEWS[name].r($("#view"));
+  window.scrollTo(0,0);
+}
+function rerender(){ VIEWS[current].r($("#view")); }
+$$(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.go));
+window.addEventListener("hashchange",()=>{ const h=location.hash.slice(1); if(h && h!==current && VIEWS[h]) go(h); });
+
+function addFab(label,fn){
+  const b=document.createElement("button"); b.className="btn fab"; b.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>${esc(label)}`;
+  b.onclick=fn; document.body.appendChild(b);
+}
+
+/* ================= Karten ================= */
+function vialCard(v){
+  const p=pep(v.peptideId)||{}; const c=conc(v);
+  return `<button class="vial" data-vial="${esc(v.id)}" style="--vc:${esc(v.color||p.color||"#B8326A")}">
+    <div class="cap"></div>
+    <div class="body">
+      <div class="row" style="gap:8px;min-width:0">${v.photo?`<img class="thumb" src="${v.photo}" alt="">`:""}<div class="grow"><div class="title">${esc(vialName(v))}</div><div class="id">${esc(p.name||"?")} · ${esc(v.id)}</div></div></div>
+      <div class="conc">${c!=null?`<div class="v num">${fmt(c)}</div><div class="u">mg/ml</div>`:`<div class="u" style="color:var(--warn)">Mischdaten<br>fehlen</div>`}</div>
+      <div>${badge(v.status)}${isExpired(v)?` <span class="badge st-disposed">Verfallen</span>`:""}</div>
+      <div class="meta"><span><b class="num">${fmt(v.mg)}</b> mg</span><span><b class="num">${fmt(v.bacMl)}</b> ml BAC</span><span>Angemischt ${v.mixedAt?fDate(v.mixedAt):"–"}</span></div>
+    </div></button>`;
+}
+function bindVialCards(root){ $$("[data-vial]",root).forEach(b=>b.onclick=()=>openVialDetail(b.dataset.vial)); }
+
+/* ================= START ================= */
+function renderStart(el){
+  const now=new Date(), today=todayStr(), nowT=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  if(!S.peptides.length){
+    el.innerHTML=`<div class="hero"><div class="greet">${esc(fLong(now))}</div></div>
+    <div class="card" style="text-align:center;padding:28px 20px">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 6v2l-1 2v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V10l-1-2V6"/><path d="M8 14h8"/></svg>
+      <h2 style="margin:10px 0 6px;font-weight:600">Willkommen</h2>
+      <p class="muted">Lege dein erstes Peptid an. Danach fügst du für jedes einzelne Vial eine eigene Karteikarte mit Mischdaten hinzu.</p>
+      <button class="btn block" id="firstPep" style="margin-top:8px">Erstes Peptid anlegen</button>
+      <button class="btn ghost block" id="demo" style="margin-top:10px">Beispieldaten zum Ausprobieren laden</button>
+    </div>
+    <div class="notice info small">Alle Daten bleiben nur auf diesem Gerät. Es gibt keine Anmeldung und keine Übertragung an Server.</div>`;
+    $("#firstPep").onclick=()=>openPeptideForm();
+    $("#demo").onclick=loadDemo;
+    return;
+  }
+  const occ=occBetween(today,ymd(addDays(now,7)));
+  const open=occ.filter(o=>o.status==="open");
+  const overdue=open.filter(o=>o.date===today && o.time<=nowT);
+  const upcoming=open.filter(o=>!(o.date===today && o.time<=nowT));
+  const next=overdue[0]||upcoming[0];
+  const inUse=S.vials.filter(v=>v.status==="inuse"||v.status==="mixed").sort((a,b)=>(a.status==="inuse"?0:1)-(b.status==="inuse"?0:1));
+  const activePeps=S.peptides.filter(p=>!p.archived);
+  const lastLogs=[...S.logs].sort((a,b)=>b.at.localeCompare(a.at)).slice(0,3);
+  const mixHist=[];
+  S.vials.forEach(v=>v.history.forEach(h=>mixHist.push({v,h})));
+  mixHist.sort((a,b)=>b.h.at.localeCompare(a.h.at));
+
+  let h=`<div class="hero"><div class="greet">${esc(fLong(now))}</div></div>`;
+  if(next){
+    const p=pep(next.plan.peptideId)||{}; const isOver=overdue.includes(next);
+    const when= next.date===today ? (isOver?"Fällig seit":"Heute um") : fDate(next.date)+", ";
+    h+=`<div class="next"><div class="grow"><div class="lbl">${isOver?"Offen":"Als Nächstes"}</div><div class="big">${esc(next.time)}</div><div class="nm">${esc(p.name||"Termin")}${next.plan.vialId&&vial(next.plan.vialId)?" · "+esc(vialName(vial(next.plan.vialId))):""}</div><div class="lbl">${esc(when)} ${next.date===today?esc(next.time)+" Uhr":esc(next.time)+" Uhr"}</div></div><button class="btn sm" data-done="${esc(next.key)}">Erledigt</button></div>`;
+  }
+  if(overdue.length>1) h+=`<div class="notice warn">${overdue.length} Termine von heute sind noch offen.</div>`;
+
+  h+=`<div class="section"><h2>Aktuell verwendete Vials</h2><button class="link" data-go2="vials">Alle Vials</button></div>`;
+  h+= inUse.length?`<div class="hscroll">${inUse.map(vialCard).join("")}</div>`:`<div class="card empty"><b>Kein Vial in Verwendung</b>Setze bei einem Vial den Status auf „Angemischt“ oder „In Verwendung“.</div>`;
+
+  h+=`<div class="section"><h2>Anstehend</h2><button class="link" data-go2="kalender">Kalender</button></div>`;
+  const rest=upcoming.filter(o=>o!==next);
+  h+= rest.length?`<div class="list">${rest.slice(0,4).map(o=>occRow(o,true)).join("")}</div>`:`<div class="card empty"><b>Keine Termine in den nächsten 7 Tagen</b>Lege im Kalender Anwendungstage an.</div>`;
+
+  h+=`<div class="section"><h2>Aktive Peptide</h2></div><div class="chips">${activePeps.map(p=>{const n=S.vials.filter(v=>v.peptideId===p.id&&!["empty","disposed"].includes(v.status)).length;return `<button class="chip" data-pep="${esc(p.id)}"><span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)} <span class="muted small">${n} ${n===1?"Vial":"Vials"}</span></button>`}).join("")}</div>`;
+
+  h+=`<div class="section"><h2>Letzte Anwendungen</h2><button class="link" data-go2="verlauf">Verlauf</button></div>`;
+  h+= lastLogs.length?`<div class="list">${lastLogs.map(logRow).join("")}</div>`:`<div class="card empty"><b>Noch nichts dokumentiert</b>Tippe unten auf „Anwendung“.</div>`;
+
+  h+=`<div class="section"><h2>Mischprotokolle</h2></div>`;
+  h+= mixHist.length?`<div class="list">${mixHist.slice(0,3).map(({v,h})=>`<button class="li" data-vial="${esc(v.id)}"><span class="bar" style="background:${esc(v.color||pepColor(v.peptideId))}"></span><div class="grow"><div class="t">${esc(vialName(v))} <span class="muted small">${esc(v.id)}</span></div><div class="s">${esc(h.type==="created"?"Angelegt":"Geändert")}: ${esc(fDT(h.at))}</div><div class="s num">${fmt(v.mg)} mg + ${fmt(v.bacMl)} ml = ${fmt(conc(v))} mg/ml</div></div></button>`).join("")}</div>`:`<div class="card empty">Noch keine Mischprotokolle.</div>`;
+
+  el.innerHTML=h;
+  bindVialCards(el);
+  $$("[data-go2]",el).forEach(b=>b.onclick=()=>go(b.dataset.go2));
+  $$("[data-pep]",el).forEach(b=>b.onclick=()=>{vialFilter.q="";vialFilter.pep=b.dataset.pep;go("vials")});
+  bindOccButtons(el); bindLogRows(el);
+  addFab("Anwendung",()=>openLogForm({}));
+}
+function occRow(o,showDate){
+  const p=pep(o.plan.peptideId)||{}; const v=o.plan.vialId?vial(o.plan.vialId):null;
+  const st={open:"<span class='stat open'>Offen</span>",done:"<span class='stat done'>Erledigt</span>",missed:"<span class='stat missed'>Ausgefallen</span>"}[o.status];
+  return `<div class="li ${o.status!=="open"?"occ-done":""}" data-occ="${esc(o.key)}"><span class="bar" style="background:${esc(p.color||"#999")}"></span><span class="time">${esc(o.time)}</span><div class="grow"><div class="t">${esc(p.name||"Unbekannt")}${o.plan.title?" – "+esc(o.plan.title):""}</div><div class="s">${showDate?esc(o.date===todayStr()?"Heute":fLong(parseYMD(o.date)))+" · ":""}${v?esc(vialName(v)):"Kein Vial festgelegt"}</div></div>${st}</div>`;
+}
+function bindOccButtons(root){
+  $$("[data-done]",root).forEach(b=>b.onclick=e=>{e.stopPropagation();completeOcc(b.dataset.done)});
+  $$("[data-occ]",root).forEach(b=>b.onclick=()=>openOccSheet(b.dataset.occ));
+}
+function findOcc(key){ const [pid,date]=key.split("|"); const p=S.plans.find(x=>x.id===pid); if(!p) return null; const o=S.occ[key]||{}; return {key,plan:p,date,time:p.time,status:o.status||"open",logId:o.logId,note:o.note}; }
+function completeOcc(key){
+  const o=findOcc(key); if(!o) return;
+  openLogForm({peptideId:o.plan.peptideId,vialId:o.plan.vialId,at:`${o.date}T${o.time}`,occKey:key});
+}
+function openOccSheet(key){
+  const o=findOcc(key); if(!o) return;
+  const p=pep(o.plan.peptideId)||{}; const v=o.plan.vialId?vial(o.plan.vialId):null;
+  const log=o.logId?S.logs.find(l=>l.id===o.logId):null;
+  openSheet(p.name||"Termin",`
+    <div class="card"><dl class="kv"><dt>Datum</dt><dd>${esc(fLong(parseYMD(o.date)))}</dd><dt>Uhrzeit</dt><dd>${esc(o.time)} Uhr</dd><dt>Vial</dt><dd>${v?esc(vialName(v)):"–"}</dd><dt>Wiederholung</dt><dd>${esc(repeatText(o.plan))}</dd><dt>Status</dt><dd>${{open:"Offen",done:"Erledigt",missed:"Ausgefallen"}[o.status]}</dd></dl>${o.plan.note?`<p class="small muted" style="margin:10px 0 0">${esc(o.plan.note)}</p>`:""}${o.note?`<div class="notice warn small">Grund: ${esc(o.note)}</div>`:""}</div>
+    ${log?`<button class="btn soft block" id="showLog">Dokumentierte Anwendung ansehen</button>`:""}
+    <div class="actions" style="flex-wrap:wrap">
+      ${o.status==="open"?`<button class="btn" id="oDone">Als erledigt dokumentieren</button><button class="btn ghost" id="oMiss">Ausgefallen</button>`:`<button class="btn ghost" id="oReset">Auf „Offen“ zurücksetzen</button>`}
+    </div>
+    <button class="btn ghost block sm" id="oPlan" style="margin-top:8px">Terminserie bearbeiten</button>`,(s,close)=>{
+      if(log) $("#showLog",s).onclick=()=>openLogDetail(log.id);
+      if($("#oDone",s)) $("#oDone",s).onclick=()=>{close();completeOcc(key)};
+      if($("#oMiss",s)) $("#oMiss",s).onclick=()=>{close();markMissed(key)};
+      if($("#oReset",s)) $("#oReset",s).onclick=()=>{delete S.occ[key];save();close();rerender();toast("Zurückgesetzt")};
+      $("#oPlan",s).onclick=()=>{close();openPlanForm(o.plan.id)};
+  });
+}
+function markMissed(key){
+  openSheet("Ausgefallene Anwendung",`<p class="muted">Dokumentiere, warum dieser Termin ausgefallen ist (optional).</p><div class="field"><label for="mr">Grund / Notiz</label><textarea id="mr" class="input" placeholder="z. B. vergessen, unterwegs, bewusst pausiert"></textarea></div><div class="actions"><button class="btn" id="ms">Als ausgefallen speichern</button></div>`,(s,close)=>{
+    $("#ms",s).onclick=()=>{ S.occ[key]={status:"missed",note:$("#mr",s).value.trim(),at:new Date().toISOString()}; save(); close(); rerender(); toast("Als ausgefallen gespeichert"); };
+  });
+}
+
+/* ================= VIALS ================= */
+const vialFilter={q:"",status:"all",pep:"",archived:false};
+function renderVials(el){
+  $("#topAction").innerHTML=`<button class="iconbtn" id="addPep" aria-label="Peptid hinzufügen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`;
+  $("#addPep").onclick=()=>openPeptideForm();
+  const f=vialFilter;
+  let h=`<div class="field" style="margin-top:4px"><input class="input" id="q" type="search" placeholder="Suchen: Peptid, Vial, ID, Charge …" value="${esc(f.q)}" aria-label="Suchen"></div>
+  <div class="chips">${[["all","Alle"],...Object.entries(STATUS).map(([k,v])=>[k,v.label])].map(([k,l])=>`<button class="chip" data-st="${k}" aria-pressed="${f.status===k}">${k!=="all"?`<span class="dot" style="background:var(--st-${{unopened:"unopened",mixed:"mixed",inuse:"inuse",empty:"empty",disposed:"disposed"}[k]})"></span>`:""}${l}</button>`).join("")}</div>
+  <label class="check small muted"><input type="checkbox" id="arch" ${f.archived?"checked":""}> Archivierte Peptide anzeigen</label>
+  ${f.pep&&pep(f.pep)?`<div class="notice info small row">Gefiltert: <b>${esc(pep(f.pep).name)}</b><span class="grow"></span><button class="btn sm ghost" id="clrPep">Filter aufheben</button></div>`:""}
+  <div id="groups"></div>`;
+  el.innerHTML=h;
+  const q=$("#q",el); q.oninput=()=>{f.q=q.value;drawGroups()};
+  $$("[data-st]",el).forEach(b=>b.onclick=()=>{f.status=b.dataset.st;$$("[data-st]",el).forEach(x=>x.setAttribute("aria-pressed",x===b));drawGroups()});
+  $("#arch",el).onchange=e=>{f.archived=e.target.checked;drawGroups()};
+  if($("#clrPep",el)) $("#clrPep",el).onclick=()=>{f.pep="";rerender()};
+  drawGroups();
+  function drawGroups(){
+    const g=$("#groups",el); const term=f.q.trim().toLowerCase();
+    let peps=S.peptides.filter(p=>f.archived||!p.archived).filter(p=>!f.pep||p.id===f.pep);
+    peps.sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    let out="";
+    for(const p of peps){
+      let vs=S.vials.filter(v=>v.peptideId===p.id);
+      if(f.status!=="all") vs=vs.filter(v=>v.status===f.status);
+      const pMatch=!term||p.name.toLowerCase().includes(term);
+      if(term && !pMatch) vs=vs.filter(v=>[v.label,v.id,v.lot,v.notes].join(" ").toLowerCase().includes(term));
+      if(term && !pMatch && !vs.length) continue;
+      if(f.status!=="all" && !vs.length && !term) continue;
+      const order={inuse:0,mixed:1,unopened:2,empty:3,disposed:4};
+      vs.sort((a,b)=>(order[a.status]-order[b.status])||(a.label||"").localeCompare(b.label||"","de",{numeric:true}));
+      out+=`<section class="pgroup"><div class="phead"><span class="swatch" style="background:${esc(p.color)}"></span><h3>${esc(p.name)}${p.archived?` <span class="muted small">(archiviert)</span>`:""}</h3><button class="iconbtn" data-pmenu="${esc(p.id)}" aria-label="${esc(p.name)} bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button><button class="iconbtn" data-addvial="${esc(p.id)}" aria-label="Vial zu ${esc(p.name)} hinzufügen" style="background:var(--rose);color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+      ${vs.length?vs.map(vialCard).join(""):`<div class="card empty small">Noch kein Vial. Tippe auf <b style="display:inline">+</b>, um eines anzulegen.</div>`}</section>`;
+    }
+    if(!S.peptides.length) out=`<div class="card empty"><b>Noch keine Peptide</b>Tippe oben rechts auf +, um dein erstes Peptid anzulegen.</div>`;
+    else if(!out) out=`<div class="card empty"><b>Nichts gefunden</b>Ändere die Suche oder den Filter.</div>`;
+    g.innerHTML=out;
+    bindVialCards(g);
+    $$("[data-addvial]",g).forEach(b=>b.onclick=()=>openVialForm(null,b.dataset.addvial));
+    $$("[data-pmenu]",g).forEach(b=>b.onclick=()=>openPeptideForm(b.dataset.pmenu));
+  }
+}
+
+/* ================= Peptid-Formular ================= */
+function openPeptideForm(id){
+  const p=id?pep(id):null;
+  const used=new Set(S.peptides.map(x=>x.color));
+  let color=p?p.color:(COLORS.find(c=>!used.has(c))||COLORS[S.peptides.length%COLORS.length]);
+  openSheet(p?"Peptid bearbeiten":"Neues Peptid",`
+    <div class="field"><label for="pn">Name des Peptids</label><input id="pn" class="input" value="${esc(p?p.name:"")}" placeholder="z. B. Reta, Cagri, GHK-Cu" autocomplete="off"></div>
+    <div class="field"><span class="flabel">Farbe im Kalender</span><div class="colors">${COLORS.map(c=>`<button type="button" style="background:${c}" data-c="${c}" aria-pressed="${c===color}" aria-label="Farbe ${c}"></button>`).join("")}</div></div>
+    <div class="field"><label for="pno">Notizen (optional)</label><textarea id="pno" class="input">${esc(p?p.notes||"":"")}</textarea></div>
+    <div class="actions"><button class="btn" id="ps">${p?"Änderungen speichern":"Peptid anlegen"}</button></div>
+    ${p?`<div style="margin-top:14px;display:grid;gap:10px"><button class="btn ghost block" id="parch">${p.archived?"Wiederherstellen":"Archivieren"}</button><button class="btn danger block" id="pdel">Peptid löschen</button></div>`:""}`,(s,close)=>{
+    $$("[data-c]",s).forEach(b=>b.onclick=()=>{color=b.dataset.c;$$("[data-c]",s).forEach(x=>x.setAttribute("aria-pressed",x===b))});
+    $("#ps",s).onclick=()=>{
+      const name=$("#pn",s).value.trim();
+      if(!name){toast("Bitte einen Namen eingeben");$("#pn",s).focus();return}
+      const dup=S.peptides.find(x=>x.name.toLowerCase()===name.toLowerCase()&&x.id!==id);
+      if(dup){toast("Ein Peptid mit diesem Namen gibt es schon");return}
+      if(p){p.name=name;p.color=color;p.notes=$("#pno",s).value.trim();}
+      else S.peptides.push({id:uid("P"),name,color,notes:$("#pno",s).value.trim(),archived:false,created:new Date().toISOString()});
+      save();close();rerender();toast(p?"Gespeichert":"Peptid angelegt");
+    };
+    if(p){
+      $("#parch",s).onclick=()=>{p.archived=!p.archived;save();close();rerender();toast(p.archived?"Archiviert":"Wiederhergestellt")};
+      $("#pdel",s).onclick=async()=>{
+        const nv=S.vials.filter(v=>v.peptideId===p.id).length, nl=S.logs.filter(l=>l.peptideId===p.id).length;
+        const ok=await dialog({title:`„${p.name}“ löschen?`,html:`<p>Dabei werden auch <b>${nv} Vials</b>, <b>${nl} Anwendungen</b> und alle zugehörigen Termine endgültig gelöscht.</p><p class="muted small">Tipp: Archivieren blendet das Peptid aus, ohne Daten zu verlieren.</p>`,ok:"Endgültig löschen",danger:true});
+        if(!ok) return;
+        const ok2=await dialog({title:"Wirklich sicher?",html:"<p>Das kann nicht rückgängig gemacht werden.</p>",ok:"Ja, löschen",danger:true});
+        if(!ok2) return;
+        S.vials=S.vials.filter(v=>v.peptideId!==p.id); S.logs=S.logs.filter(l=>l.peptideId!==p.id);
+        const planIds=S.plans.filter(x=>x.peptideId===p.id).map(x=>x.id); S.plans=S.plans.filter(x=>x.peptideId!==p.id);
+        Object.keys(S.occ).forEach(k=>{if(planIds.includes(k.split("|")[0])) delete S.occ[k]});
+        S.peptides=S.peptides.filter(x=>x.id!==p.id);
+        save();close();rerender();toast("Gelöscht");
+      };
+    }
+    setTimeout(()=>{ if(!p) $("#pn",s).focus(); },250);
+  });
+}
+
+/* ================= Plausibilität Mischrechner ================= */
+function mixChecks(mg,ml){
+  const w=[];
+  if(mg!=null && mg<=0) w.push("Die Peptidmenge muss größer als 0 sein.");
+  if(ml!=null && ml<=0) w.push("Die BAC-Wassermenge muss größer als 0 sein.");
+  if(mg!=null && mg>100) w.push("Mehr als 100 mg in einem Vial ist ungewöhnlich. Bitte Einheit prüfen (mg, nicht µg).");
+  if(mg!=null && mg>0 && mg<0.1) w.push("Weniger als 0,1 mg ist ungewöhnlich. Bitte Einheit prüfen.");
+  if(ml!=null && ml>10) w.push("Mehr als 10 ml BAC-Wasser ist ungewöhnlich. Bitte Eingabe prüfen.");
+  if(ml!=null && ml>0 && ml<0.2) w.push("Weniger als 0,2 ml ist ungewöhnlich. Bitte Eingabe prüfen.");
+  return w;
+}
+const DISCLAIMER=`Rechnerischer Wert aus deinen Eingaben. Er sagt nichts über tatsächlichen Wirkstoffgehalt, Reinheit oder Sterilität aus. Die App gibt keine Dosierungs- oder Anwendungsempfehlungen.`;
+function calcBox(mg,ml){
+  const c=(mg>0&&ml>0)?mg/ml:null; const w=mixChecks(mg,ml);
+  return `<div class="calc"><div class="muted small">Rechnerische Konzentration</div><div class="big num">${c!=null?fmt(c):"–"} <small>mg/ml</small></div>${c!=null?`<div class="small muted num">${fmt(mg)} mg ÷ ${fmt(ml)} ml</div>`:""}</div>${w.map(x=>`<div class="notice warn small">${esc(x)}</div>`).join("")}<p class="small muted" style="margin:0 0 14px">${DISCLAIMER}</p>`;
+}
+
+/* ================= Vial-Formular ================= */
+function nextVialLabel(pid){
+  const p=pep(pid); if(!p) return "";
+  const n=S.vials.filter(v=>v.peptideId===pid).length+1;
+  let label=`${p.name} ${n}`, i=n;
+  while(S.vials.some(v=>v.peptideId===pid && v.label===label)){ i++; label=`${p.name} ${i}`; }
+  return label;
+}
+function openVialForm(id,peptideId,copyFrom){
+  const v=id?vial(id):null;
+  const src=v||copyFrom||{};
+  const pid=v?v.peptideId:(peptideId||copyFrom?.peptideId||(S.peptides.find(p=>!p.archived)||{}).id);
+  if(!pid){ toast("Bitte zuerst ein Peptid anlegen"); openPeptideForm(); return; }
+  let color=src.color||"", photo=v?v.photo||"":"";
+  const peps=S.peptides.filter(p=>!p.archived||p.id===pid);
+  const html=`
+    ${v?`<div class="notice info small">Vial-ID <b>${esc(v.id)}</b>. Änderungen an den Mischdaten werden mit Datum und Uhrzeit im Verlauf gespeichert.</div>`:""}
+    <div class="field"><label for="vp">Peptid</label><select id="vp" class="input">${peps.map(p=>`<option value="${esc(p.id)}" ${p.id===pid?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+    <div class="field"><label for="vl">Vial-Bezeichnung</label><input id="vl" class="input" value="${esc(v?v.label:nextVialLabel(pid))}" placeholder="z. B. Reta 1"></div>
+    <h3 style="margin:18px 0 10px;font-size:1.05rem">Mischdaten</h3>
+    <div class="grid2"><div class="field"><label for="vmg">Peptidmenge</label><div class="unit"><input id="vmg" class="input num" inputmode="decimal" value="${src.mg!=null?esc(String(src.mg).replace(".",",")):""}" placeholder="10"><span>mg</span></div></div>
+    <div class="field"><label for="vml">BAC-Wasser</label><div class="unit"><input id="vml" class="input num" inputmode="decimal" value="${v&&v.bacMl!=null?esc(String(v.bacMl).replace(".",",")):""}" placeholder="2"><span>ml</span></div></div></div>
+    <div id="calcOut"></div>
+    <div class="field"><label for="vmx">Angemischt am</label><input id="vmx" type="datetime-local" class="input" value="${esc(v?v.mixedAt||"":"")}"></div>
+    <button type="button" class="btn ghost sm" id="nowMix" style="margin:-4px 0 14px">Jetzt angemischt</button>
+    <div class="field"><label for="vst">Status</label><select id="vst" class="input">${Object.entries(STATUS).map(([k,s])=>`<option value="${k}" ${(v?v.status:"unopened")===k?"selected":""}>${s.label}</option>`).join("")}</select></div>
+    <h3 style="margin:18px 0 10px;font-size:1.05rem">Weitere Angaben</h3>
+    <div class="field"><label for="vlot">Chargennummer (optional)</label><input id="vlot" class="input" value="${esc(src.lot||"")}"></div>
+    <div class="grid2"><div class="field"><label for="vbuy">Kaufdatum</label><input id="vbuy" type="date" class="input" value="${esc(src.purchaseDate||"")}"></div>
+    <div class="field"><label for="vexp">Verfallsdatum</label><input id="vexp" type="date" class="input" value="${esc(src.expiry||"")}"></div></div>
+    <div class="field"><label for="vop">Anbruchdatum</label><input id="vop" type="date" class="input" value="${esc(v?v.openedAt||"":"")}"></div>
+    <div class="field"><span class="flabel">Eigene Vial-Farbe (optional)</span><div class="colors"><button type="button" data-vc="" aria-pressed="${!color}" aria-label="Farbe des Peptids" style="background:var(--surface);border-color:${!color?"var(--text)":"var(--line)"};font-size:.7rem">Auto</button>${COLORS.map(c=>`<button type="button" style="background:${c}" data-vc="${c}" aria-pressed="${c===color}" aria-label="Farbe ${c}"></button>`).join("")}</div></div>
+    <div class="field"><span class="flabel">Foto (optional)</span><div id="photoBox"></div><label class="btn ghost sm" style="cursor:pointer">Foto wählen<input type="file" id="vph" accept="image/*" hidden></label> <button type="button" class="btn ghost sm" id="vphDel" ${photo?"":"hidden"}>Foto entfernen</button></div>
+    <div class="field"><label for="vn">Notizen</label><textarea id="vn" class="input">${esc(v?v.notes||"":"")}</textarea></div>
+    ${v?`<div class="field"><label for="vreason">Grund der Änderung (optional, für den Verlauf)</label><input id="vreason" class="input" placeholder="z. B. Tippfehler korrigiert"></div>`:""}
+    <div class="actions"><button class="btn" id="vs">${v?"Änderungen speichern":"Vial anlegen"}</button></div>`;
+  openSheet(v?"Vial bearbeiten":"Neues Vial",html,(s,close)=>{
+    const upd=()=>{ $("#calcOut",s).innerHTML=calcBox(num($("#vmg",s).value),num($("#vml",s).value)); };
+    $("#vmg",s).oninput=upd; $("#vml",s).oninput=upd; upd();
+    $("#nowMix",s).onclick=()=>{ $("#vmx",s).value=localDT(new Date()); if($("#vst",s).value==="unopened") $("#vst",s).value="mixed"; };
+    $("#vp",s).onchange=()=>{ if(!v) $("#vl",s).value=nextVialLabel($("#vp",s).value); };
+    $$("[data-vc]",s).forEach(b=>b.onclick=()=>{color=b.dataset.vc;$$("[data-vc]",s).forEach(x=>{x.setAttribute("aria-pressed",x===b)})});
+    const drawPhoto=()=>{ $("#photoBox",s).innerHTML=photo?`<img class="photo" src="${photo}" alt="Vial-Foto">`:""; $("#vphDel",s).hidden=!photo; };
+    drawPhoto();
+    $("#vph",s).onchange=async e=>{ const f=e.target.files[0]; if(!f) return; photo=await resizeImage(f); drawPhoto(); };
+    $("#vphDel",s).onclick=()=>{photo="";drawPhoto()};
+    $("#vs",s).onclick=async()=>{
+      const data={peptideId:$("#vp",s).value,label:$("#vl",s).value.trim(),mg:num($("#vmg",s).value),bacMl:num($("#vml",s).value),mixedAt:$("#vmx",s).value||"",status:$("#vst",s).value,lot:$("#vlot",s).value.trim(),purchaseDate:$("#vbuy",s).value,expiry:$("#vexp",s).value,openedAt:$("#vop",s).value,color,photo,notes:$("#vn",s).value.trim()};
+      if(!data.label){toast("Bitte eine Bezeichnung eingeben");return}
+      const dupLabel=S.vials.find(x=>x.peptideId===data.peptideId&&x.label.toLowerCase()===data.label.toLowerCase()&&x.id!==id);
+      if(dupLabel){ await dialog({title:"Bezeichnung bereits vergeben",html:`<p>„${esc(data.label)}“ gibt es bei diesem Peptid schon (ID ${esc(dupLabel.id)}). Bitte wähle eine eindeutige Bezeichnung, damit nichts verwechselt wird.</p>`,ok:"Verstanden",cancel:null}); return; }
+      const issues=[...mixChecks(data.mg,data.bacMl)];
+      if(data.bacMl!=null && data.mg==null) issues.push("BAC-Wasser ist eingetragen, aber keine Peptidmenge.");
+      if((data.status==="mixed"||data.status==="inuse") && (data.mg==null||data.bacMl==null)) issues.push("Status ist „angemischt/in Verwendung“, aber die Mischdaten sind unvollständig.");
+      if(data.status==="unopened" && data.bacMl!=null) issues.push("Status ist „ungeöffnet“, aber BAC-Wasser ist eingetragen.");
+      if(data.mixedAt && parseDT(data.mixedAt)>new Date(Date.now()+5*60000)) issues.push("Das Mischdatum liegt in der Zukunft.");
+      if(data.purchaseDate && data.mixedAt && data.mixedAt.slice(0,10)<data.purchaseDate) issues.push("Das Mischdatum liegt vor dem Kaufdatum.");
+      if(data.expiry && data.expiry<todayStr()) issues.push("Das Verfallsdatum ist überschritten.");
+      if(issues.length){
+        const ok=await dialog({title:"Bitte Angaben prüfen",html:`<ul>${issues.map(i=>`<li>${esc(i)}</li>`).join("")}</ul><p class="small muted">Du kannst trotzdem speichern.</p>`,ok:"Trotzdem speichern",cancel:"Zurück"});
+        if(!ok) return;
+      }
+      const nowIso=localDT(new Date());
+      if(v){
+        const changes=[];
+        for(const k of Object.keys(data)){
+          const a=v[k]??"", b=data[k]??"";
+          if(String(a)!==String(b)) changes.push({field:k,from:k==="photo"?(a?"Foto":""):a,to:k==="photo"?(b?"Foto":""):b});
+        }
+        if(!changes.length){close();return}
+        const mixChanged=changes.some(c=>MIX_FIELDS.includes(c.field));
+        if(mixChanged && (v.mg!=null||v.bacMl!=null)){
+          const ok=await dialog({title:"Mischdaten ändern?",html:`<p>Du änderst die Mischdaten von <b>${esc(vialName(v))}</b> (${esc(v.id)}). Die alten Werte bleiben im Änderungsverlauf erhalten. Bereits dokumentierte Anwendungen behalten die Mischdaten von damals.</p>`,ok:"Ändern"});
+          if(!ok) return;
+        }
+        Object.assign(v,data);
+        v.history.push({at:nowIso,type:mixChanged?"mix":"edit",changes,reason:($("#vreason",s)||{}).value||""});
+        save();close();rerender();toast("Vial gespeichert");
+        if(sheetStack.length){closeAllSheets();openVialDetail(v.id)}
+      }else{
+        const nv=Object.assign({id:uid("V"),created:new Date().toISOString(),history:[]},data);
+        nv.history.push({at:nowIso,type:"created",changes:Object.keys(data).filter(k=>data[k]!==""&&data[k]!=null&&k!=="photo").map(k=>({field:k,from:"",to:data[k]}))});
+        S.vials.push(nv); save(); close(); rerender(); toast("Vial angelegt: "+nv.id);
+      }
+    };
+  });
+}
+function resizeImage(file){
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=()=>{ const img=new Image(); img.onload=()=>{ const max=480; let w=img.width,h=img.height; const k=Math.min(1,max/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k); const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(img,0,0,w,h); res(c.toDataURL("image/jpeg",0.72)); }; img.onerror=()=>res(""); img.src=r.result; };
+    r.onerror=()=>res(""); r.readAsDataURL(file);
+  });
+}
+</script>
+<script>
+"use strict";
+/* ================= Vial-Details ================= */
+function histChangeText(c){
+  const lab=FIELD_LABELS[c.field]||c.field;
+  const show=x=>{ if(x===""||x==null) return "leer"; if(c.field==="status") return (STATUS[x]||{}).label||x; if(c.field==="peptideId") return (pep(x)||{}).name||x; if(c.field==="mixedAt") return fDT(x); if(["purchaseDate","expiry","openedAt"].includes(c.field)) return fDate(x); if(c.field==="mg"||c.field==="bacMl") return fmt(x); return String(x); };
+  if(c.field==="color") return `${lab} geändert`;
+  return `${esc(lab)}: <del>${esc(show(c.from))}</del> → <b>${esc(show(c.to))}</b>`;
+}
+function openVialDetail(id){
+  const v=vial(id); if(!v) return;
+  const p=pep(v.peptideId)||{}; const c=conc(v);
+  const logs=S.logs.filter(l=>l.vialId===v.id).sort((a,b)=>b.at.localeCompare(a.at));
+  const html=`
+    ${v.photo?`<img class="photo" src="${v.photo}" alt="Foto von ${esc(vialName(v))}">`:""}
+    <div class="card" style="border-top:8px solid ${esc(v.color||p.color||"#B8326A")}">
+      <div class="row"><div class="grow"><div style="font-size:1.25rem;font-weight:600">${esc(vialName(v))}</div><div class="muted small">${esc(p.name||"?")} · ID <b>${esc(v.id)}</b></div></div>${badge(v.status)}</div>
+      <div class="calc" style="margin:14px 0 12px"><div class="muted small">Rechnerische Konzentration</div><div class="big num">${c!=null?fmt(c):"–"} <small>mg/ml</small></div><div class="small muted num">${fmt(v.mg)} mg Peptid + ${fmt(v.bacMl)} ml BAC-Wasser</div></div>
+      ${c==null?`<div class="notice warn small">Mischdaten unvollständig. Bitte Peptidmenge und BAC-Wasser eintragen.</div>`:""}
+      ${isExpired(v)?`<div class="notice danger small">Das Verfallsdatum (${fDate(v.expiry)}) ist überschritten.</div>`:""}
+      <dl class="kv"><dt>Angemischt</dt><dd>${fDT(v.mixedAt)}</dd><dt>Anbruch</dt><dd>${fDate(v.openedAt)}</dd><dt>Verfallsdatum</dt><dd>${fDate(v.expiry)}</dd><dt>Kaufdatum</dt><dd>${fDate(v.purchaseDate)}</dd><dt>Charge</dt><dd>${esc(v.lot||"–")}</dd><dt>Anwendungen</dt><dd>${logs.length}</dd></dl>
+      ${v.notes?`<p style="margin:12px 0 0;white-space:pre-wrap">${esc(v.notes)}</p>`:""}
+      <p class="small muted" style="margin:12px 0 0">${DISCLAIMER}</p>
+    </div>
+    <span class="flabel">Status ändern</span>
+    <div class="chips">${Object.entries(STATUS).map(([k,s])=>`<button class="chip" data-setst="${k}" aria-pressed="${v.status===k}">${s.label}</button>`).join("")}</div>
+    <div style="display:grid;gap:10px;margin:14px 0">
+      <button class="btn block" id="dLog">Anwendung mit diesem Vial dokumentieren</button>
+      <div class="grid2"><button class="btn soft" id="dEdit">Bearbeiten</button><button class="btn soft" id="dDup">Weiteres Vial</button></div>
+    </div>
+    <div class="section"><h2>Änderungsverlauf</h2></div>
+    <div class="card">${v.history.length?[...v.history].reverse().map(h=>`<div class="hist"><div class="when">${esc(fDT(h.at))} · ${{created:"Angelegt",mix:"Mischdaten geändert",edit:"Bearbeitet",status:"Status geändert"}[h.type]||"Geändert"}</div>${(h.changes||[]).filter(c=>c.field!=="photo"||h.type!=="created").map(c=>`<div class="chg">${h.type==="created"?esc(FIELD_LABELS[c.field]||c.field)+": <b>"+esc(c.field==="status"?STATUS[c.to]?.label:c.field==="peptideId"?(pep(c.to)||{}).name:c.field==="mixedAt"?fDT(c.to):["mg","bacMl"].includes(c.field)?fmt(c.to):c.to)+"</b>":histChangeText(c)}</div>`).join("")}${h.reason?`<div class="small muted">Grund: ${esc(h.reason)}</div>`:""}</div>`).join(""):`<p class="muted">Kein Verlauf.</p>`}</div>
+    ${logs.length?`<div class="section"><h2>Anwendungen mit diesem Vial</h2></div><div class="list">${logs.slice(0,10).map(logRow).join("")}</div>`:""}
+    <button class="btn danger block" id="dDel" style="margin-top:8px">Vial löschen</button>`;
+  openSheet("Vial-Karteikarte",html,(s,close)=>{
+    $$("[data-setst]",s).forEach(b=>b.onclick=async()=>{
+      const ns=b.dataset.setst; if(ns===v.status) return;
+      const changes=[{field:"status",from:v.status,to:ns}];
+      if((ns==="mixed"||ns==="inuse") && conc(v)==null){
+        const ok=await dialog({title:"Mischdaten fehlen",html:"<p>Für dieses Vial sind Peptidmenge oder BAC-Wasser nicht eingetragen. Status trotzdem ändern?</p>",ok:"Trotzdem ändern"}); if(!ok) return;
+      }
+      if(ns==="inuse" && !v.openedAt){ changes.push({field:"openedAt",from:"",to:todayStr()}); v.openedAt=todayStr(); }
+      v.status=ns; v.history.push({at:localDT(new Date()),type:"status",changes});
+      save(); close(); rerender(); openVialDetail(v.id); toast("Status: "+STATUS[ns].label);
+    });
+    $("#dLog",s).onclick=()=>{close();openLogForm({peptideId:v.peptideId,vialId:v.id})};
+    $("#dEdit",s).onclick=()=>openVialForm(v.id);
+    $("#dDup",s).onclick=()=>{close();openVialForm(null,v.peptideId,{peptideId:v.peptideId,mg:v.mg,lot:v.lot,purchaseDate:v.purchaseDate,expiry:v.expiry})};
+    bindLogRows(s);
+    $("#dDel",s).onclick=async()=>{
+      const ok=await dialog({title:`„${vialName(v)}“ löschen?`,html:`<p>Die Karteikarte mit allen Mischdaten und dem Änderungsverlauf wird gelöscht. ${logs.length?`<b>${logs.length} dokumentierte Anwendungen</b> bleiben erhalten und behalten ihre gespeicherten Mischdaten.`:""}</p><p class="small muted">Tipp: Status „Entsorgt“ behält alles für deine Unterlagen.</p>`,ok:"Endgültig löschen",danger:true});
+      if(!ok) return;
+      S.vials=S.vials.filter(x=>x.id!==v.id);
+      S.plans.forEach(pl=>{if(pl.vialId===v.id) pl.vialId=""});
+      save(); close(); rerender(); toast("Vial gelöscht");
+    };
+  });
+}
+
+/* ================= Anwendungsprotokoll ================= */
+function logRow(l){
+  const p=pep(l.peptideId)||{}; const v=vial(l.vialId); const snap=l.mix||{};
+  return `<button class="li" data-log="${esc(l.id)}"><span class="bar" style="background:${esc(p.color||"#999")}"></span><div class="grow"><div class="t">${esc(p.name||"Gelöschtes Peptid")} <span class="muted small">${esc(v?vialName(v):snap.label||"–")}</span></div><div class="s">${esc(fDT(l.at))}</div><div class="s num">${[l.mg!=null?fmt(l.mg)+" mg dokumentiert":"",l.ml!=null?fmt(l.ml)+" ml":"",snap.conc!=null?"Vial "+fmt(snap.conc)+" mg/ml":""].filter(Boolean).join(" · ")}</div>${l.side?`<div class="s" style="color:var(--danger)">Beschwerden notiert</div>`:""}</div></button>`;
+}
+function bindLogRows(root){ $$("[data-log]",root).forEach(b=>b.onclick=()=>openLogDetail(b.dataset.log)); }
+function mixBoxHTML(v){
+  if(!v) return `<div class="mixbox muted small">Wähle ein Vial, um dessen Mischdaten zu sehen.</div>`;
+  const c=conc(v);
+  return `<div class="mixbox" style="border-color:${esc(v.color||pepColor(v.peptideId))}"><div class="row" style="margin-bottom:8px"><b class="grow">${esc(vialName(v))}</b>${badge(v.status)}</div><div class="k num"><span>Vial-ID</span><span>${esc(v.id)}</span><span>Peptidmenge</span><span>${fmt(v.mg)} mg</span><span>BAC-Wasser</span><span>${fmt(v.bacMl)} ml</span><span>Konzentration</span><span>${c!=null?fmt(c)+" mg/ml":"unvollständig"}</span><span>Angemischt</span><span>${fDT(v.mixedAt)}</span><span>Verfallsdatum</span><span>${fDate(v.expiry)}</span></div><p class="small muted" style="margin:8px 0 0">Rechnerischer Wert – keine Aussage über Gehalt, Reinheit oder Sterilität.</p></div>`;
+}
+function vialIssues(v){
+  const out=[];
+  if(!v) return out;
+  if(v.mg==null||v.bacMl==null) out.push("Die Mischdaten sind unvollständig (Peptidmenge oder BAC-Wasser fehlt).");
+  if(!v.mixedAt && v.bacMl!=null) out.push("Das Mischdatum fehlt.");
+  if(v.status==="unopened") out.push("Das Vial ist als „ungeöffnet“ markiert.");
+  if(v.status==="empty") out.push("Das Vial ist als „aufgebraucht“ markiert.");
+  if(v.status==="disposed") out.push("Das Vial ist als „entsorgt“ markiert.");
+  if(isExpired(v)) out.push(`Das Verfallsdatum (${fDate(v.expiry)}) ist überschritten.`);
+  if(v.mixedAt && parseDT(v.mixedAt)>new Date()) out.push("Das Mischdatum liegt in der Zukunft.");
+  mixChecks(v.mg,v.bacMl).forEach(x=>out.push(x));
+  const others=S.vials.filter(o=>o.id!==v.id && o.peptideId===v.peptideId && o.status==="inuse");
+  if(others.length) out.push(`Bei diesem Peptid ist noch ein anderes Vial in Verwendung: ${others.map(o=>vialName(o)).join(", ")}. Bitte prüfe, ob du das richtige Vial gewählt hast.`);
+  return out;
+}
+function openLogForm({logId,peptideId,vialId,at,occKey}){
+  const l=logId?S.logs.find(x=>x.id===logId):null;
+  if(!S.peptides.length){toast("Bitte zuerst ein Peptid anlegen");openPeptideForm();return}
+  let pid=l?l.peptideId:(peptideId||(S.vials.find(v=>v.status==="inuse")||{}).peptideId||(S.peptides.find(p=>!p.archived)||S.peptides[0]).id);
+  let vid=l?l.vialId:(vialId||"");
+  const vialOptions=(p)=>{
+    const order={inuse:0,mixed:1,unopened:2,empty:3,disposed:4};
+    const vs=S.vials.filter(v=>v.peptideId===p).sort((a,b)=>order[a.status]-order[b.status]);
+    if(!vid){ const firstUse=vs.find(v=>v.status==="inuse"); if(firstUse && !l) vid=firstUse.id; }
+    return `<option value="">– Vial wählen –</option>`+vs.map(v=>`<option value="${esc(v.id)}" ${v.id===vid?"selected":""}>${esc(vialName(v))} · ${STATUS[v.status].label} · ${esc(v.id)}</option>`).join("");
+  };
+  const html=`
+    <div class="field"><label for="la">Datum und Uhrzeit</label><input id="la" type="datetime-local" class="input" value="${esc(l?l.at:(at||localDT(new Date())))}"></div>
+    <div class="field"><label for="lp">Peptid</label><select id="lp" class="input">${S.peptides.filter(p=>!p.archived||p.id===pid).map(p=>`<option value="${esc(p.id)}" ${p.id===pid?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+    <div class="field"><label for="lv">Verwendetes Vial</label><select id="lv" class="input">${vialOptions(pid)}</select></div>
+    <div id="mixOut"></div>
+    <div class="grid2"><div class="field"><label for="lmg">Dokumentierte Menge</label><div class="unit"><input id="lmg" class="input num" inputmode="decimal" value="${l&&l.mg!=null?esc(String(l.mg).replace(".",",")):""}"><span>mg</span></div></div>
+    <div class="field"><label for="lml">Volumen (optional)</label><div class="unit"><input id="lml" class="input num" inputmode="decimal" value="${l&&l.ml!=null?esc(String(l.ml).replace(".",",")):""}"><span>ml</span></div></div></div>
+    <p class="small muted" style="margin:-4px 0 14px">Trage hier ein, was du selbst festgelegt hast. Die App schlägt keine Mengen vor.</p>
+    <div class="field"><label for="ls">Injektionsstelle (optional)</label><input id="ls" class="input" list="sites" value="${esc(l?l.site||"":"")}" placeholder="Auswählen oder eintippen"><datalist id="sites">${SITES.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+    <div class="field"><label for="ln">Notizen</label><textarea id="ln" class="input">${esc(l?l.notes||"":"")}</textarea></div>
+    <div class="field"><label for="lse">Beschwerden oder Nebenwirkungen</label><textarea id="lse" class="input" placeholder="Leer lassen, wenn nichts aufgefallen ist">${esc(l?l.side||"":"")}</textarea></div>
+    <div class="actions"><button class="btn" id="lsave">${l?"Änderungen speichern":"Anwendung speichern"}</button></div>
+    ${l?`<button class="btn danger block" id="ldel" style="margin-top:12px">Eintrag löschen</button>`:""}`;
+  openSheet(l?"Anwendung bearbeiten":"Anwendung dokumentieren",html,(s,close)=>{
+    const showMix=()=>{ const v=vial($("#lv",s).value); $("#mixOut",s).innerHTML=(l&&l.mix&&l.vialId===$("#lv",s).value)?mixBoxHTML(v)+`<div class="notice info small">Beim Speichern dieses Eintrags wurden diese Mischdaten festgehalten: ${fmt(l.mix.mg)} mg + ${fmt(l.mix.bacMl)} ml = ${fmt(l.mix.conc)} mg/ml.</div>`:mixBoxHTML(v); };
+    $("#lp",s).onchange=()=>{ vid=""; $("#lv",s).innerHTML=vialOptions($("#lp",s).value); showMix(); };
+    $("#lv",s).onchange=()=>{ vid=$("#lv",s).value; showMix(); };
+    showMix();
+    $("#lsave",s).onclick=async()=>{
+      const v=vial($("#lv",s).value);
+      const atV=$("#la",s).value;
+      if(!atV){toast("Bitte Datum und Uhrzeit angeben");return}
+      if(!v){ const ok=await dialog({title:"Kein Vial gewählt",html:"<p>Ohne Vial sind keine Mischdaten mit dieser Anwendung verknüpft. Trotzdem speichern?</p>",ok:"Ohne Vial speichern",cancel:"Vial wählen"}); if(!ok) return; }
+      else if(!l || l.vialId!==v.id){
+        const iss=vialIssues(v);
+        if(iss.length){ const ok=await dialog({title:"Sicherheitsabfrage",html:`<p>Beim Vial <b>${esc(vialName(v))}</b> (${esc(v.id)}) ist Folgendes aufgefallen:</p><ul>${iss.map(i=>`<li>${esc(i)}</li>`).join("")}</ul><p class="small muted">Bitte vergewissere dich, dass du das richtige Vial verwendest.</p>`,ok:"Ist korrekt, speichern",cancel:"Zurück"}); if(!ok) return; }
+      }
+      if(parseDT(atV)>new Date(Date.now()+10*60000)){ const ok=await dialog({title:"Zeitpunkt in der Zukunft",html:"<p>Datum und Uhrzeit liegen in der Zukunft. Trotzdem speichern?</p>",ok:"Speichern"}); if(!ok) return; }
+      const data={at:atV,peptideId:$("#lp",s).value,vialId:v?v.id:"",mg:num($("#lmg",s).value),ml:num($("#lml",s).value),site:$("#ls",s).value.trim(),notes:$("#ln",s).value.trim(),side:$("#lse",s).value.trim()};
+      if(!l || l.vialId!==data.vialId) data.mix=v?{label:vialName(v),mg:v.mg,bacMl:v.bacMl,conc:conc(v),mixedAt:v.mixedAt}:null;
+      let msg="Anwendung gespeichert";
+      if(l){ Object.assign(l,data); l.edited=new Date().toISOString(); }
+      else{
+        const nl=Object.assign({id:uid("A"),created:new Date().toISOString(),occKey:occKey||""},data);
+        S.logs.push(nl);
+        if(occKey) S.occ[occKey]={status:"done",logId:nl.id,at:new Date().toISOString()};
+        if(v && v.status==="mixed"){ const ch=[{field:"status",from:"mixed",to:"inuse"}]; if(!v.openedAt){ch.push({field:"openedAt",from:"",to:atV.slice(0,10)});v.openedAt=atV.slice(0,10);} v.status="inuse"; v.history.push({at:localDT(new Date()),type:"status",changes:ch}); msg="Gespeichert · Vial jetzt „In Verwendung“"; }
+      }
+      save(); closeAllSheets(); rerender(); toast(msg);
+    };
+    if(l) $("#ldel",s).onclick=async()=>{
+      const ok=await dialog({title:"Eintrag löschen?",html:"<p>Diese dokumentierte Anwendung wird endgültig gelöscht.</p>",ok:"Löschen",danger:true}); if(!ok) return;
+      S.logs=S.logs.filter(x=>x.id!==l.id);
+      Object.keys(S.occ).forEach(k=>{ if(S.occ[k].logId===l.id) delete S.occ[k]; });
+      save(); closeAllSheets(); rerender(); toast("Gelöscht");
+    };
+  });
+}
+function openLogDetail(id){
+  const l=S.logs.find(x=>x.id===id); if(!l) return;
+  const p=pep(l.peptideId)||{}; const v=vial(l.vialId); const m=l.mix||{};
+  openSheet("Anwendung",`
+    <div class="card" style="border-left:6px solid ${esc(p.color||"#999")}"><dl class="kv">
+      <dt>Zeitpunkt</dt><dd>${esc(fDT(l.at))}</dd><dt>Peptid</dt><dd>${esc(p.name||"–")}</dd><dt>Vial</dt><dd>${esc(v?vialName(v):m.label||"–")}${l.vialId?`<br><span class="muted small">${esc(l.vialId)}</span>`:""}</dd>
+      <dt>Dokumentierte Menge</dt><dd class="num">${l.mg!=null?fmt(l.mg)+" mg":"–"}</dd><dt>Volumen</dt><dd class="num">${l.ml!=null?fmt(l.ml)+" ml":"–"}</dd><dt>Stelle</dt><dd>${esc(l.site||"–")}</dd></dl>
+      ${l.notes?`<p style="white-space:pre-wrap;margin:12px 0 0"><span class="muted small">Notizen</span><br>${esc(l.notes)}</p>`:""}
+      ${l.side?`<div class="notice danger small"><b>Beschwerden:</b> ${esc(l.side)}</div>`:""}
+    </div>
+    <div class="section"><h2>Mischdaten zum Zeitpunkt der Anwendung</h2></div>
+    ${l.mix?`<div class="mixbox"><div class="k num"><span>Peptidmenge</span><span>${fmt(m.mg)} mg</span><span>BAC-Wasser</span><span>${fmt(m.bacMl)} ml</span><span>Konzentration</span><span>${fmt(m.conc)} mg/ml</span><span>Angemischt</span><span>${fDT(m.mixedAt)}</span></div></div>`:`<p class="muted">Keine Mischdaten gespeichert.</p>`}
+    ${v && l.mix && (v.mg!==m.mg||v.bacMl!==m.bacMl)?`<div class="notice warn small">Die Mischdaten des Vials wurden später geändert. Angezeigt sind die Werte von damals.</div>`:""}
+    <div class="actions"><button class="btn soft" id="ledit">Bearbeiten</button>${v?`<button class="btn ghost" id="lvial">Vial öffnen</button>`:""}</div>`,(s,close)=>{
+      $("#ledit",s).onclick=()=>{close();openLogForm({logId:l.id})};
+      if(v) $("#lvial",s).onclick=()=>{close();openVialDetail(v.id)};
+  });
+}
+
+/* ================= KALENDER ================= */
+const cal={mode:"month",date:todayStr()};
+function renderCalendar(el){
+  $("#topAction").innerHTML=`<button class="iconbtn" id="calToday" aria-label="Heute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></svg></button>`;
+  $("#calToday").onclick=()=>{cal.date=todayStr();rerender()};
+  const d=parseYMD(cal.date);
+  let title="",body="";
+  if(cal.mode==="month"){
+    title=`${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const first=new Date(d.getFullYear(),d.getMonth(),1); const start=addDays(first,-wdIdx(first));
+    const end=addDays(start,41);
+    const occ=occBetween(ymd(start),ymd(end));
+    const logs=S.logs;
+    body=`<div class="month">${WD_SHORT.map(w=>`<div class="wd">${w}</div>`).join("")}`;
+    for(let i=0;i<42;i++){
+      const x=addDays(start,i), ds=ymd(x);
+      const os=occ.filter(o=>o.date===ds); const ls=logs.filter(l=>l.at.slice(0,10)===ds && !l.occKey);
+      const colors=[...os.map(o=>({c:pepColor(o.plan.peptideId),s:o.status})),...ls.map(l=>({c:pepColor(l.peptideId),s:"done"}))].slice(0,6);
+      body+=`<button class="d ${x.getMonth()!==d.getMonth()?"out":""} ${ds===todayStr()?"today":""} ${ds===cal.date?"sel":""}" data-day="${ds}" aria-label="${esc(fLong(x))}, ${os.length+ls.length} Einträge"><span class="n">${x.getDate()}</span><span class="dots">${colors.map(c=>`<i style="background:${esc(c.c)};${c.s!=="open"?"opacity:.4":""}"></i>`).join("")}</span></button>`;
+    }
+    body+=`</div><div class="section"><h2>${esc(fLong(d))}</h2></div>${dayList(cal.date)}`;
+  }else if(cal.mode==="week"){
+    const start=addDays(d,-wdIdx(d)); const end=addDays(start,6);
+    title=`${start.toLocaleDateString("de-DE",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"})}`;
+    for(let i=0;i<7;i++){ const x=addDays(start,i); const ds=ymd(x); body+=`<div class="section"><h2 style="${ds===todayStr()?"color:var(--rose)":""}">${esc(fLong(x))}</h2></div>${dayList(ds,true)}`; }
+  }else{
+    title=fLong(d); body=dayList(cal.date);
+  }
+  el.innerHTML=`<div class="seg" role="group" aria-label="Ansicht">${[["month","Monat"],["week","Woche"],["day","Tag"]].map(([k,l])=>`<button data-mode="${k}" aria-pressed="${cal.mode===k}">${l}</button>`).join("")}</div>
+  <div class="calnav"><button class="iconbtn" id="prev" aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button><h2>${esc(title)}</h2><button class="iconbtn" id="next" aria-label="Weiter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
+  ${S.peptides.length?`<div class="chips small">${S.peptides.filter(p=>!p.archived).map(p=>`<span class="chip" style="cursor:default;min-height:34px;padding:5px 12px"><span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)}</span>`).join("")}</div>`:""}
+  ${body}
+  <div class="section"><h2>Terminserien</h2></div>
+  ${S.plans.length?`<div class="list">${S.plans.map(p=>`<button class="li" data-plan="${esc(p.id)}"><span class="bar" style="background:${esc(pepColor(p.peptideId))}"></span><span class="time">${esc(p.time)}</span><div class="grow"><div class="t">${esc((pep(p.peptideId)||{}).name||"?")}${p.title?" – "+esc(p.title):""}</div><div class="s">${esc(repeatText(p))}${p.active===false?" · pausiert":""}${p.remind?" · Erinnerung":""}</div></div></button>`).join("")}</div>`:`<div class="card empty"><b>Noch keine Termine</b>Tippe auf „Termin“, um Anwendungstage festzulegen.</div>`}`;
+  $$("[data-mode]",el).forEach(b=>b.onclick=()=>{cal.mode=b.dataset.mode;rerender()});
+  $("#prev",el).onclick=()=>shift(-1); $("#next",el).onclick=()=>shift(1);
+  $$("[data-day]",el).forEach(b=>b.onclick=()=>{cal.date=b.dataset.day;rerender()});
+  $$("[data-plan]",el).forEach(b=>b.onclick=()=>openPlanForm(b.dataset.plan));
+  bindOccButtons(el); bindLogRows(el);
+  addFab("Termin",()=>openPlanForm(null,cal.date));
+  function shift(n){ const x=parseYMD(cal.date); if(cal.mode==="month"){x.setDate(1);x.setMonth(x.getMonth()+n)} else x.setDate(x.getDate()+(cal.mode==="week"?7*n:n)); cal.date=ymd(x); rerender(); }
+}
+function dayList(ds,compact){
+  const os=occBetween(ds,ds); const ls=S.logs.filter(l=>l.at.slice(0,10)===ds && !l.occKey).sort((a,b)=>a.at.localeCompare(b.at));
+  if(!os.length && !ls.length) return compact?`<p class="muted small" style="margin:0 0 6px">Keine Einträge</p>`:`<div class="card empty small">Keine Termine oder Anwendungen an diesem Tag.</div>`;
+  return `<div class="list">${os.map(o=>occRow(o)).join("")}${ls.map(logRow).join("")}</div>`;
+}
+
+/* ================= Termin-Formular ================= */
+function openPlanForm(id,dateStr){
+  const p=id?S.plans.find(x=>x.id===id):null;
+  if(!S.peptides.length){toast("Bitte zuerst ein Peptid anlegen");openPeptideForm();return}
+  let days=p?[...(p.days||[])]:[wdIdx(parseYMD(dateStr||todayStr()))];
+  const pid=p?p.peptideId:(S.peptides.find(x=>!x.archived)||S.peptides[0]).id;
+  const vOpts=(pp,sel)=>`<option value="">Kein bestimmtes Vial</option>`+S.vials.filter(v=>v.peptideId===pp&&!["empty","disposed"].includes(v.status)||v.id===sel).map(v=>`<option value="${esc(v.id)}" ${v.id===sel?"selected":""}>${esc(vialName(v))} · ${STATUS[v.status].label}</option>`).join("");
+  openSheet(p?"Termin bearbeiten":"Neuer Termin",`
+    <div class="field"><label for="tp">Peptid</label><select id="tp" class="input">${S.peptides.filter(x=>!x.archived||x.id===pid).map(x=>`<option value="${esc(x.id)}" ${x.id===pid?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
+    <div class="field"><label for="tv">Vial (optional)</label><select id="tv" class="input">${vOpts(pid,p?p.vialId:"")}</select></div>
+    <div class="field"><label for="tt">Bezeichnung (optional)</label><input id="tt" class="input" value="${esc(p?p.title||"":"")}" placeholder="z. B. morgens"></div>
+    <div class="grid2"><div class="field"><label for="tsd">Startdatum</label><input id="tsd" type="date" class="input" value="${esc(p?p.startDate:(dateStr||todayStr()))}"></div><div class="field"><label for="ttm">Uhrzeit</label><input id="ttm" type="time" class="input" value="${esc(p?p.time:"08:00")}"></div></div>
+    <div class="field"><label for="trep">Wiederholung</label><select id="trep" class="input">${[["once","Einmalig"],["daily","Täglich"],["weekly","An bestimmten Wochentagen"],["interval","Alle X Tage"]].map(([k,l])=>`<option value="${k}" ${(p?p.repeat:"weekly")===k?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="field" id="wdBox"><span class="flabel">Wochentage</span><div class="weekdays">${WD_SHORT.map((w,i)=>`<button type="button" data-wd="${i}" aria-pressed="${days.includes(i)}">${w}</button>`).join("")}</div></div>
+    <div class="field" id="ivBox"><label for="tiv">Alle wie viele Tage?</label><input id="tiv" class="input num" inputmode="numeric" value="${esc(p?p.every||2:2)}"></div>
+    <div class="field" id="endBox"><label for="ted">Enddatum (optional)</label><input id="ted" type="date" class="input" value="${esc(p?p.endDate||"":"")}"></div>
+    <label class="check"><input type="checkbox" id="trem" ${(!p||p.remind)?"checked":""}> Erinnerung</label>
+    <div class="field" id="befBox"><label for="tbef">Erinnern</label><select id="tbef" class="input">${[[0,"Zur Uhrzeit"],[5,"5 Minuten vorher"],[15,"15 Minuten vorher"],[30,"30 Minuten vorher"],[60,"1 Stunde vorher"]].map(([k,l])=>`<option value="${k}" ${(p?p.before||0:0)==k?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="field"><label for="tno">Notiz (optional)</label><textarea id="tno" class="input">${esc(p?p.note||"":"")}</textarea></div>
+    ${p?`<label class="check"><input type="checkbox" id="tact" ${p.active!==false?"checked":""}> Serie aktiv</label>`:""}
+    <div class="actions"><button class="btn" id="tsave">${p?"Änderungen speichern":"Termin anlegen"}</button></div>
+    ${p?`<button class="btn danger block" id="tdel" style="margin-top:12px">Terminserie löschen</button>`:""}`,(s,close)=>{
+      const vis=()=>{ const r=$("#trep",s).value; $("#wdBox",s).hidden=r!=="weekly"; $("#ivBox",s).hidden=r!=="interval"; $("#endBox",s).hidden=r==="once"; $("#befBox",s).hidden=!$("#trem",s).checked; };
+      $("#trep",s).onchange=vis; $("#trem",s).onchange=vis; vis();
+      $("#tp",s).onchange=()=>{$("#tv",s).innerHTML=vOpts($("#tp",s).value,"")};
+      $$("[data-wd]",s).forEach(b=>b.onclick=()=>{const i=+b.dataset.wd; days=days.includes(i)?days.filter(x=>x!==i):[...days,i]; b.setAttribute("aria-pressed",days.includes(i))});
+      $("#tsave",s).onclick=()=>{
+        const data={peptideId:$("#tp",s).value,vialId:$("#tv",s).value,title:$("#tt",s).value.trim(),startDate:$("#tsd",s).value,time:$("#ttm",s).value||"08:00",repeat:$("#trep",s).value,days:[...days].sort(),every:Math.max(1,parseInt($("#tiv",s).value)||1),endDate:$("#trep",s).value==="once"?"":$("#ted",s).value,remind:$("#trem",s).checked,before:+$("#tbef",s).value,note:$("#tno",s).value.trim(),active:p?$("#tact",s).checked:true};
+        if(!data.startDate){toast("Bitte ein Startdatum wählen");return}
+        if(data.repeat==="weekly"&&!data.days.length){toast("Bitte mindestens einen Wochentag wählen");return}
+        if(data.endDate && data.endDate<data.startDate){toast("Das Enddatum liegt vor dem Startdatum");return}
+        if(p) Object.assign(p,data); else S.plans.push(Object.assign({id:uid("T"),created:new Date().toISOString()},data));
+        save(); close(); rerender(); toast(p?"Termin gespeichert":"Termin angelegt");
+        if(data.remind) maybeAskNotify();
+      };
+      if(p) $("#tdel",s).onclick=async()=>{
+        const ok=await dialog({title:"Terminserie löschen?",html:"<p>Alle zukünftigen Termine dieser Serie verschwinden aus dem Kalender. Bereits dokumentierte Anwendungen bleiben erhalten.</p>",ok:"Löschen",danger:true}); if(!ok) return;
+        S.plans=S.plans.filter(x=>x.id!==p.id);
+        Object.keys(S.occ).forEach(k=>{ if(k.startsWith(p.id+"|")){ const lg=S.logs.find(l=>l.id===S.occ[k].logId); if(lg) lg.occKey=""; delete S.occ[k]; } });
+        save(); close(); rerender(); toast("Gelöscht");
+      };
+  });
+}
+</script>
+<script>
+"use strict";
+/* ================= VERLAUF ================= */
+const hf={pep:"",vial:"",from:"",to:""};
+function filteredLogs(){
+  return S.logs.filter(l=>(!hf.pep||l.peptideId===hf.pep)&&(!hf.vial||l.vialId===hf.vial)&&(!hf.from||l.at.slice(0,10)>=hf.from)&&(!hf.to||l.at.slice(0,10)<=hf.to)).sort((a,b)=>b.at.localeCompare(a.at));
+}
+function filteredMissed(){
+  const out=[];
+  Object.entries(S.occ).forEach(([k,o])=>{ if(o.status!=="missed") return; const [pid,ds]=k.split("|"); const pl=S.plans.find(x=>x.id===pid); if(!pl) return;
+    if(hf.pep&&pl.peptideId!==hf.pep) return; if(hf.vial&&pl.vialId!==hf.vial) return; if(hf.from&&ds<hf.from) return; if(hf.to&&ds>hf.to) return;
+    out.push({key:k,plan:pl,date:ds,time:pl.time,note:o.note}); });
+  return out;
+}
+function renderHistory(el){
+  $("#topAction").innerHTML=`<button class="iconbtn" id="csvBtn" aria-label="Als CSV exportieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></button>`;
+  $("#csvBtn").onclick=()=>exportCSV(filteredLogs());
+  const vs=S.vials.filter(v=>!hf.pep||v.peptideId===hf.pep);
+  if(hf.vial && !vs.some(v=>v.id===hf.vial)) hf.vial="";
+  const logs=filteredLogs(), missed=filteredMissed();
+  const items=[...logs.map(l=>({k:l.at,html:logRow(l)})),...missed.map(m=>({k:m.date+"T"+m.time,html:`<button class="li occ-done" data-occ="${esc(m.key)}"><span class="bar" style="background:${esc(pepColor(m.plan.peptideId))}"></span><div class="grow"><div class="t">${esc((pep(m.plan.peptideId)||{}).name||"?")}</div><div class="s">${esc(fDate(m.date))}, ${esc(m.time)} Uhr${m.note?" · "+esc(m.note):""}</div></div><span class="stat missed">Ausgefallen</span></button>`}))].sort((a,b)=>b.k.localeCompare(a.k));
+  const groups={}; items.forEach(i=>{ const d=i.k.slice(0,10); (groups[d]=groups[d]||[]).push(i.html); });
+  const usedPeps=new Set(logs.map(l=>l.peptideId));
+  el.innerHTML=`
+    <div class="grid2"><div class="field"><label for="hp">Peptid</label><select id="hp" class="input"><option value="">Alle</option>${S.peptides.map(p=>`<option value="${esc(p.id)}" ${hf.pep===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+    <div class="field"><label for="hv">Vial</label><select id="hv" class="input"><option value="">Alle</option>${vs.map(v=>`<option value="${esc(v.id)}" ${hf.vial===v.id?"selected":""}>${esc(vialName(v))}</option>`).join("")}</select></div></div>
+    <div class="grid2"><div class="field"><label for="hfr">Von</label><input id="hfr" type="date" class="input" value="${esc(hf.from)}"></div><div class="field"><label for="hto">Bis</label><input id="hto" type="date" class="input" value="${esc(hf.to)}"></div></div>
+    <div class="chips"><button class="chip" data-rng="7">7 Tage</button><button class="chip" data-rng="30">30 Tage</button><button class="chip" data-rng="90">90 Tage</button><button class="chip" data-rng="0">Alles</button></div>
+    <div class="card row" style="justify-content:space-around;text-align:center"><div><div style="font-size:1.6rem;font-weight:600" class="num">${logs.length}</div><div class="small muted">Anwendungen</div></div><div><div style="font-size:1.6rem;font-weight:600" class="num">${missed.length}</div><div class="small muted">Ausgefallen</div></div><div><div style="font-size:1.6rem;font-weight:600" class="num">${hf.pep?1:usedPeps.size}</div><div class="small muted">Peptide</div></div></div>
+    ${Object.keys(groups).length?Object.entries(groups).map(([d,arr])=>`<div class="section"><h2>${esc(fLong(parseYMD(d)))} <span class="muted small">${parseYMD(d).getFullYear()}</span></h2></div><div class="list">${arr.join("")}</div>`).join(""):`<div class="card empty"><b>Keine Einträge</b>Für diesen Filter gibt es keine dokumentierten Anwendungen.</div>`}`;
+  $("#hp",el).onchange=e=>{hf.pep=e.target.value;rerender()};
+  $("#hv",el).onchange=e=>{hf.vial=e.target.value;rerender()};
+  $("#hfr",el).onchange=e=>{hf.from=e.target.value;rerender()};
+  $("#hto",el).onchange=e=>{hf.to=e.target.value;rerender()};
+  $$("[data-rng]",el).forEach(b=>b.onclick=()=>{const n=+b.dataset.rng; hf.to=n?todayStr():""; hf.from=n?ymd(addDays(new Date(),-n+1)):""; rerender()});
+  bindLogRows(el); bindOccButtons(el);
+  addFab("Anwendung",()=>openLogForm({}));
+}
+function csvCell(x){ const s=String(x??""); return /[;"\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; }
+function exportCSV(logs){
+  if(!logs.length){toast("Keine Einträge für den Export");return}
+  const dec=n=>n==null?"":String(n).replace(".",",");
+  const head=["Datum","Uhrzeit","Peptid","Vial","Vial-ID","Menge (mg)","Volumen (ml)","Konzentration damals (mg/ml)","Peptid im Vial (mg)","BAC-Wasser (ml)","Angemischt am","Injektionsstelle","Notizen","Beschwerden"];
+  const rows=logs.map(l=>{const m=l.mix||{}; const v=vial(l.vialId); return [l.at.slice(0,10),l.at.slice(11,16),(pep(l.peptideId)||{}).name||"",v?vialName(v):m.label||"",l.vialId,dec(l.mg),dec(l.ml),dec(m.conc!=null?Math.round(m.conc*10000)/10000:null),dec(m.mg),dec(m.bacMl),m.mixedAt?fDT(m.mixedAt):"",l.site,l.notes,l.side]});
+  const csv="\uFEFF"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n");
+  saveFile(`peptid-protokoll-${todayStr()}.csv`,csv,"text/csv;charset=utf-8");
+}
+
+/* ================= MEHR ================= */
+function renderMore(el){
+  const perm=("Notification" in window)?Notification.permission:"unsupported";
+  const permText={granted:"Benachrichtigungen sind erlaubt.",denied:"Benachrichtigungen sind blockiert. Du kannst sie in den Android-Einstellungen für Chrome bzw. die App wieder erlauben.",default:"Benachrichtigungen sind noch nicht erlaubt.",unsupported:"Benachrichtigungen werden hier nicht unterstützt (z. B. in der Vorschau). Nutze die Kalender-Übernahme."}[perm];
+  const lb=S.settings.lastBackup;
+  const old=!lb || (Date.now()-new Date(lb).getTime())>14*86400000;
+  el.innerHTML=`
+  <div class="section"><h2>Mischungsrechner</h2></div>
+  <div class="card">
+    <div class="grid2"><div class="field"><label for="cmg">Peptidmenge</label><div class="unit"><input id="cmg" class="input num" inputmode="decimal" placeholder="10"><span>mg</span></div></div><div class="field"><label for="cml">BAC-Wasser</label><div class="unit"><input id="cml" class="input num" inputmode="decimal" placeholder="2"><span>ml</span></div></div></div>
+    <div id="cout"></div>
+    <button class="btn soft block" id="cToVial">Als neues Vial speichern</button>
+  </div>
+
+  <div class="section"><h2>Erinnerungen</h2></div>
+  <div class="card">
+    <label class="check"><input type="checkbox" id="remOn" ${S.settings.reminders?"checked":""}> Erinnerungen in der App aktiv</label>
+    <p class="small muted" style="margin:4px 0 10px">${esc(permText)}</p>
+    <div style="display:grid;gap:10px">
+      ${perm==="default"?`<button class="btn soft block" id="askN">Benachrichtigungen erlauben</button>`:""}
+      ${perm==="granted"?`<button class="btn ghost block" id="testN">Test-Benachrichtigung senden</button>`:""}
+      <button class="btn block" id="ics">Termine in Samsung-Kalender übernehmen</button>
+    </div>
+    <details style="margin-top:12px"><summary style="cursor:pointer;min-height:40px;display:flex;align-items:center">Warum zwei Wege?</summary>
+      <p class="small">Eine Web-App darf auf Android nur dann zuverlässig Benachrichtigungen zeigen, wenn sie geöffnet ist oder kurz im Hintergrund läuft. Android beendet Web-Apps im Hintergrund zum Akkusparen, und zeitgesteuerte Benachrichtigungen ohne Server gibt es für Web-Apps nicht.</p>
+      <p class="small">Am zuverlässigsten ist deshalb: Termine als Kalenderdatei exportieren und im Samsung-Kalender öffnen. Der Kalender erinnert dich dann immer, auch wenn die App geschlossen ist. Ändern sich Termine, exportiere einfach erneut.</p>
+    </details>
+  </div>
+
+  <div class="section"><h2>Datensicherung</h2></div>
+  <div class="card">
+    ${old?`<div class="notice warn small">${lb?"Letzte Sicherung: "+esc(fDT(lb.slice(0,16))):"Noch keine Sicherung erstellt."} Sichere deine Daten regelmäßig, z. B. in Google Drive oder Samsung Cloud.</div>`:`<p class="small muted">Letzte Sicherung: ${esc(fDT(lb.slice(0,16)))}</p>`}
+    <div style="display:grid;gap:10px">
+      <button class="btn block" id="exp">Sicherung erstellen (JSON)</button>
+      <label class="btn soft block" style="cursor:pointer">Sicherung wiederherstellen<input type="file" id="imp" accept=".json,application/json" hidden></label>
+      <button class="btn ghost block" id="csvAll">Alle Anwendungen als CSV</button>
+    </div>
+    <p class="small muted" style="margin:12px 0 0">Gespeichert in: ${storageMode==="indexeddb"?"IndexedDB auf diesem Gerät":storageMode==="localstorage"?"lokalem Browserspeicher":"nur im Arbeitsspeicher – bitte exportieren!"} · ${S.peptides.length} Peptide · ${S.vials.length} Vials · ${S.logs.length} Anwendungen</p>
+  </div>
+
+  <div class="section"><h2>Darstellung</h2></div>
+  <div class="seg">${[["auto","Automatisch"],["light","Hell"],["dark","Dunkel"]].map(([k,l])=>`<button data-theme-set="${k}" aria-pressed="${S.settings.theme===k}">${l}</button>`).join("")}</div>
+
+  <div class="section"><h2>PIN-Sperre</h2></div>
+  <div class="card">
+    <p class="small muted" style="margin-top:0">${S.settings.pinHash?"Die PIN-Sperre ist aktiv. Die App sperrt sich beim Start und nach 2 Minuten im Hintergrund.":"Schütze deine Gesundheitsdaten mit einer 4-stelligen PIN."} Die PIN ist ein Sichtschutz, keine Verschlüsselung.</p>
+    <div style="display:grid;gap:10px">${S.settings.pinHash?`<button class="btn soft block" id="pinSet">PIN ändern</button><button class="btn ghost block" id="pinOff">PIN-Sperre ausschalten</button>`:`<button class="btn soft block" id="pinSet">PIN festlegen</button>`}</div>
+  </div>
+
+  <div class="section"><h2>Wichtige Hinweise</h2></div>
+  <div class="card small">
+    <p style="margin-top:0">Diese App ist ein persönliches Dokumentationswerkzeug. Sie gibt keine Dosierungsempfehlungen und keine Anleitungen zur Anwendung.</p>
+    <p>Berechnete Konzentrationen sind rein rechnerische Werte aus deinen Eingaben und sagen nichts über tatsächlichen Wirkstoffgehalt, Reinheit oder Sterilität aus.</p>
+    <p style="margin-bottom:0">Bei Beschwerden oder Fragen zur Anwendung wende dich an eine Ärztin, einen Arzt oder eine Apotheke.</p>
+  </div>
+
+  <div class="section"><h2>Alle Daten löschen</h2></div>
+  <button class="btn danger block" id="wipe">Alle Daten von diesem Gerät löschen</button>
+  <p class="small muted" style="text-align:center;margin:18px 0">Peptid-Tracker · Version 1.0 · funktioniert offline</p>`;
+
+  const upd=()=>{$("#cout",el).innerHTML=calcBox(num($("#cmg",el).value),num($("#cml",el).value))}; $("#cmg",el).oninput=upd; $("#cml",el).oninput=upd; upd();
+  $("#cToVial",el).onclick=()=>{
+    if(!S.peptides.length){toast("Bitte zuerst ein Peptid anlegen");openPeptideForm();return}
+    const mg=num($("#cmg",el).value), ml=num($("#cml",el).value);
+    openVialForm(null,null,{mg});
+    setTimeout(()=>{ const f=$("#vml"); if(f&&ml!=null){ f.value=String(ml).replace(".",","); f.dispatchEvent(new Event("input")); } },50);
+  };
+  $("#remOn",el).onchange=e=>{S.settings.reminders=e.target.checked;save()};
+  if($("#askN",el)) $("#askN",el).onclick=async()=>{ try{ await Notification.requestPermission(); }catch(e){} rerender(); };
+  if($("#testN",el)) $("#testN",el).onclick=()=>notify("Peptid-Tracker","So sehen deine Erinnerungen aus.","test");
+  $("#ics",el).onclick=openIcsSheet;
+  $("#exp",el).onclick=exportJSON;
+  $("#imp",el).onchange=importJSON;
+  $("#csvAll",el).onclick=()=>exportCSV([...S.logs].sort((a,b)=>b.at.localeCompare(a.at)));
+  $$("[data-theme-set]",el).forEach(b=>b.onclick=()=>{S.settings.theme=b.dataset.themeSet;applyTheme();save();rerender()});
+  $("#pinSet",el).onclick=setupPin;
+  if($("#pinOff",el)) $("#pinOff",el).onclick=async()=>{ const ok=await dialog({title:"PIN-Sperre ausschalten?",html:"<p>Danach kann jeder, der dein entsperrtes Handy hat, die App öffnen.</p>",ok:"Ausschalten"}); if(ok){S.settings.pinHash=null;save();rerender();toast("PIN-Sperre aus")} };
+  $("#wipe",el).onclick=async()=>{
+    const ok=await dialog({title:"Alle Daten löschen?",html:"<p>Alle Peptide, Vials, Mischprotokolle, Termine und Anwendungen werden von diesem Gerät gelöscht.</p><p><b>Erstelle vorher eine Sicherung.</b></p>",ok:"Weiter",danger:true}); if(!ok) return;
+    const ok2=await dialog({title:"Letzte Bestätigung",html:"<p>Das kann nicht rückgängig gemacht werden.</p>",ok:"Alles löschen",danger:true}); if(!ok2) return;
+    const keepTheme=S.settings.theme; S=emptyState(); S.settings.theme=keepTheme; save(); go("start"); toast("Alle Daten gelöscht");
+  };
+}
+
+/* ================= Sicherung ================= */
+async function exportJSON(){
+  const data=JSON.stringify(Object.assign({},S,{exported:new Date().toISOString()}),null,1);
+  const ok=await saveFile(`peptid-tracker-sicherung-${todayStr()}.json`,data,"application/json");
+  if(ok){ S.settings.lastBackup=new Date().toISOString(); save(); if(current==="mehr") rerender(); }
+}
+function importJSON(e){
+  const f=e.target.files[0]; e.target.value=""; if(!f) return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    let d; try{ d=JSON.parse(r.result); }catch(err){ dialog({title:"Datei nicht lesbar",html:"<p>Das ist keine gültige Sicherungsdatei.</p>",ok:"OK",cancel:null}); return; }
+    if(!d||d.app!=="peptid-tracker"||!Array.isArray(d.peptides)||!Array.isArray(d.vials)){ dialog({title:"Falsches Format",html:"<p>Diese Datei stammt nicht aus dem Peptid-Tracker.</p>",ok:"OK",cancel:null}); return; }
+    const ok=await dialog({title:"Sicherung wiederherstellen?",html:`<p>Die Sicherung enthält <b>${d.peptides.length} Peptide</b>, <b>${d.vials.length} Vials</b> und <b>${(d.logs||[]).length} Anwendungen</b>${d.exported?` (erstellt ${esc(fDT(d.exported.slice(0,16)))})`:""}.</p><p>Deine aktuellen Daten auf diesem Gerät werden <b>ersetzt</b>.</p>`,ok:"Wiederherstellen",danger:true});
+    if(!ok) return;
+    const theme=S.settings.theme; S=migrate(d); if(!d.settings) S.settings.theme=theme; delete S.exported;
+    applyTheme(); save(); go("start"); toast("Sicherung wiederhergestellt");
+  };
+  r.readAsText(f);
+}
+
+/* ================= Kalenderdatei (.ics) ================= */
+function openIcsSheet(){
+  const plans=S.plans.filter(p=>p.active!==false);
+  if(!plans.length){toast("Es gibt noch keine aktiven Termine");return}
+  openSheet("In Kalender übernehmen",`<p>Erstellt eine Kalenderdatei mit ${plans.length} Terminserie${plans.length===1?"":"n"} inklusive Erinnerung. Öffne die Datei danach in „Eigene Dateien“ und wähle den Samsung-Kalender.</p>
+  <label class="check"><input type="checkbox" id="neutral" ${S.settings.neutralTitles?"checked":""}> Neutrale Titel verwenden („Erinnerung“ statt Peptidname)</label>
+  <p class="small muted">Empfehlenswert, wenn andere deine Kalenderbenachrichtigungen sehen können.</p>
+  <div class="notice info small">Wenn du Termine später änderst, lösche die alten im Kalender und importiere die Datei neu. So entstehen keine doppelten Einträge.</div>
+  <div class="actions"><button class="btn" id="icsGo">Kalenderdatei erstellen</button></div>`,(s,close)=>{
+    $("#icsGo",s).onclick=()=>{ S.settings.neutralTitles=$("#neutral",s).checked; save(); saveFile(`peptid-termine-${todayStr()}.ics`,buildICS(plans,S.settings.neutralTitles),"text/calendar"); close(); };
+  });
+}
+function icsEsc(s){return String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n")}
+function buildICS(plans,neutral){
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Peptid-Tracker//DE","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  const BY=["MO","TU","WE","TH","FR","SA","SU"];
+  for(const p of plans){
+    const pp=pep(p.peptideId)||{}; const v=vial(p.vialId);
+    const dt=p.startDate.replace(/-/g,"")+"T"+p.time.replace(":","")+"00";
+    let rr="";
+    if(p.repeat==="daily") rr="FREQ=DAILY";
+    if(p.repeat==="weekly") rr="FREQ=WEEKLY;BYDAY="+p.days.map(i=>BY[i]).join(",");
+    if(p.repeat==="interval") rr="FREQ=DAILY;INTERVAL="+p.every;
+    if(rr && p.endDate) rr+=";UNTIL="+p.endDate.replace(/-/g,"")+"T235959";
+    const title=neutral?"Erinnerung":`${pp.name||"Peptid"}${p.title?" – "+p.title:""}`;
+    const desc=neutral?"":`${v?"Vial: "+vialName(v)+" ("+v.id+")\\n":""}${p.note||""}`;
+    L.push("BEGIN:VEVENT",`UID:${p.id}@peptid-tracker`,`DTSTAMP:${stamp}`,`DTSTART:${dt}`,"DURATION:PT15M",`SUMMARY:${icsEsc(title)}`);
+    if(desc) L.push(`DESCRIPTION:${desc.replace(/,/g,"\\,").replace(/;/g,"\\;")}`);
+    if(rr) L.push("RRULE:"+rr);
+    if(p.remind!==false) L.push("BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:${icsEsc(title)}`,`TRIGGER:-PT${p.before||0}M`,"END:VALARM");
+    L.push("END:VEVENT");
+  }
+  L.push("END:VCALENDAR");
+  return L.join("\r\n");
+}
+
+/* ================= Erinnerungen in der App ================= */
+async function notify(title,body,tag){
+  let shown=false;
+  try{
+    if("Notification" in window && Notification.permission==="granted"){
+      const reg=navigator.serviceWorker && await Promise.race([navigator.serviceWorker.getRegistration(),new Promise(r=>setTimeout(()=>r(null),800))]);
+      if(reg && reg.showNotification){ await reg.showNotification(title,{body,tag,icon:"icon-192.png",badge:"icon-192.png",requireInteraction:true,vibrate:[200,100,200]}); shown=true; }
+      else { new Notification(title,{body,tag}); shown=true; }
+    }
+  }catch(e){}
+  if(document.visibilityState==="visible") toast("🔔 "+title+": "+body);
+  return shown;
+}
+function checkReminders(){
+  if(!S.settings.reminders || !S.plans.length) return;
+  const now=new Date(); const yest=ymd(addDays(now,-1));
+  let changed=false;
+  for(const o of occBetween(yest,todayStr())){
+    if(o.status!=="open"||!o.plan.remind||S.notified[o.key]) continue;
+    const at=parseDT(`${o.date}T${o.time}`); if(!at) continue;
+    const trig=new Date(at.getTime()-(o.plan.before||0)*60000);
+    if(now>=trig && now-trig<6*3600000){
+      const p=pep(o.plan.peptideId)||{}; const v=vial(o.plan.vialId);
+      const title=S.settings.neutralTitles?"Erinnerung":(p.name||"Termin");
+      notify(title,`${o.time} Uhr${!S.settings.neutralTitles&&v?" · "+vialName(v):""}`,o.key);
+      S.notified[o.key]=Date.now(); changed=true;
+    }
+  }
+  const cutoff=Date.now()-8*86400000;
+  Object.keys(S.notified).forEach(k=>{ if(S.notified[k]<cutoff){delete S.notified[k];changed=true} });
+  if(changed) save();
+}
+async function maybeAskNotify(){
+  if(!("Notification" in window) || Notification.permission!=="default") return;
+  const ok=await dialog({title:"Benachrichtigungen erlauben?",html:"<p>Damit dich die App an Termine erinnern kann, braucht sie deine Erlaubnis. Für Erinnerungen bei geschlossener App nutze zusätzlich „Mehr → Termine in Samsung-Kalender übernehmen“.</p>",ok:"Erlauben",cancel:"Später"});
+  if(ok){ try{ await Notification.requestPermission(); }catch(e){} }
+}
+
+/* ================= PIN ================= */
+async function hashPin(pin){
+  const txt="peptid-tracker:"+pin;
+  try{ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+  catch(e){ let h=5381; for(const c of txt) h=((h<<5)+h+c.charCodeAt(0))|0; return "f"+(h>>>0).toString(16); }
+}
+function pinPad(title,sub,onDone,allowCancel){
+  const o=document.createElement("div"); o.className="lock"; let val="";
+  o.innerHTML=`<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><h2>${esc(title)}</h2><p class="muted" id="pinSub" style="margin:0;text-align:center">${esc(sub||"")}</p><div class="pinDots">${"<i></i>".repeat(4)}</div><div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")}<button data-k="x" aria-label="${allowCancel?"Abbrechen":""}" style="font-size:1rem;${allowCancel?"":"visibility:hidden"}">${allowCancel?"Abbr.":""}</button><button data-k="0">0</button><button data-k="del" aria-label="Löschen" style="font-size:1.2rem">⌫</button></div>`;
+  const dots=()=>$$(".pinDots i",o).forEach((d,i)=>d.classList.toggle("f",i<val.length));
+  const api={reset(msg){val="";dots();if(msg)$("#pinSub",o).textContent=msg;},close(){o.remove();document.removeEventListener("keydown",kd)}};
+  const press=k=>{ if(k==="x"){api.close();return} if(k==="del"){val=val.slice(0,-1);dots();return} if(val.length<4){val+=k;dots(); if(val.length===4) setTimeout(()=>onDone(val,api),120);} };
+  o.addEventListener("click",e=>{const b=e.target.closest("[data-k]"); if(b) press(b.dataset.k)});
+  const kd=e=>{ if(/^[0-9]$/.test(e.key)) press(e.key); else if(e.key==="Backspace") press("del"); };
+  document.addEventListener("keydown",kd);
+  document.body.appendChild(o); return api;
+}
+let locked=false;
+function lockApp(){
+  if(!S.settings.pinHash||locked) return; locked=true; closeAllSheets();
+  pinPad("Peptid-Tracker","PIN eingeben",async(v,api)=>{ if(await hashPin(v)===S.settings.pinHash){api.close();locked=false;} else api.reset("Falsche PIN. Bitte erneut versuchen."); },false);
+}
+function setupPin(){
+  pinPad("Neue PIN","4 Ziffern wählen",(first,api)=>{
+    api.close();
+    pinPad("PIN bestätigen","Bitte noch einmal eingeben",async(second,api2)=>{
+      if(first!==second){api2.reset("Die PINs stimmen nicht überein. Noch einmal.");return}
+      S.settings.pinHash=await hashPin(first); save(); api2.close(); rerender(); toast("PIN-Sperre aktiv");
+    },true);
+  },true);
+}
+let hiddenAt=0;
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden") hiddenAt=Date.now();
+  else { if(hiddenAt && Date.now()-hiddenAt>120000) lockApp(); checkReminders(); if(!sheetStack.length) rerender(); }
+});
+
+/* ================= Theme ================= */
+function applyTheme(){
+  const t=S.settings.theme;
+  if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme",t); else document.documentElement.removeAttribute("data-theme");
+}
+
+/* ================= Beispieldaten ================= */
+function loadDemo(){
+  const now=new Date(), mixed=localDT(addDays(now,-3)).slice(0,11)+"18:30";
+  const pA={id:uid("P"),name:"Beispiel A",color:COLORS[0],notes:"",archived:false,created:now.toISOString()}; S.peptides.push(pA);
+  const pB={id:uid("P"),name:"Beispiel B",color:COLORS[1],notes:"",archived:false,created:now.toISOString()}; S.peptides.push(pB);
+  const mk=(p,label,mg,ml,status,extra={})=>{ const v=Object.assign({id:uid("V"),peptideId:p.id,label,mg,bacMl:ml,mixedAt:ml!=null?mixed:"",status,lot:"",purchaseDate:ymd(addDays(now,-20)),expiry:ymd(addDays(now,300)),openedAt:status==="inuse"?ymd(addDays(now,-3)):"",color:"",photo:"",notes:"",created:now.toISOString(),history:[]},extra);
+    v.history.push({at:localDT(addDays(now,-3)),type:"created",changes:[{field:"mg",from:"",to:mg},...(ml!=null?[{field:"bacMl",from:"",to:ml}]:[]),{field:"status",from:"",to:status}]}); S.vials.push(v); return v; };
+  const a1=mk(pA,"Beispiel A 1",10,2,"inuse",{lot:"CH-2026-01"});
+  mk(pA,"Beispiel A 2",10,3,"mixed");
+  mk(pA,"Beispiel A 3",10,null,"unopened");
+  const b1=mk(pB,"Beispiel B 1",5,2.5,"inuse");
+  S.plans.push({id:uid("T"),peptideId:pA.id,vialId:a1.id,title:"",startDate:ymd(addDays(now,-7)),time:"08:00",repeat:"weekly",days:[0,3],every:1,endDate:"",remind:true,before:0,note:"",active:true,created:now.toISOString()});
+  S.plans.push({id:uid("T"),peptideId:pB.id,vialId:b1.id,title:"abends",startDate:ymd(addDays(now,-7)),time:"20:00",repeat:"interval",days:[],every:2,endDate:"",remind:true,before:15,note:"",active:true,created:now.toISOString()});
+  S.logs.push({id:uid("A"),at:localDT(addDays(now,-1)).slice(0,11)+"08:05",peptideId:pA.id,vialId:a1.id,mg:null,ml:null,site:"",notes:"Beispiel-Eintrag – hier stehen deine eigenen Notizen.",side:"",occKey:"",mix:{label:a1.label,mg:a1.mg,bacMl:a1.bacMl,conc:conc(a1),mixedAt:a1.mixedAt},created:now.toISOString()});
+  save(); rerender(); toast("Beispieldaten geladen");
+}
+
+/* ================= Start ================= */
+(async function init(){
+  await loadState();
+  applyTheme();
+  const h=location.hash.slice(1);
+  go(VIEWS[h]?h:"start");
+  if(S.settings.pinHash) lockApp();
+  checkReminders(); setInterval(checkReminders,20000);
+  try{
+    if("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.claude){
+      const m=document.createElement("link"); m.rel="manifest"; m.href="manifest.webmanifest"; document.head.appendChild(m);
+      navigator.serviceWorker.register("sw.js").catch(()=>{});
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
